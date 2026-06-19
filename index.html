@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Datum OS</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#18181b">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-app: #f4f4f5; --bg-surface: #ffffff; --bg-sidebar: #0f172a;
+            --text-main: #18181b; --text-muted: #71717a; --border-light: #e4e4e7;
+            --btn-primary: #18181b; --accent: #2563eb; --success: #059669; --danger: #e11d48;
+            --radius-lg: 12px; --radius-sm: 6px; --sidebar-width: 240px;
+        }
+        [data-theme="dark"] {
+            --bg-app: #0f172a; --bg-surface: #1e293b; --text-main: #f1f5f9;
+            --border-light: #334155; --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-app); color: var(--text-main); display: flex; min-height: 100vh; transition: background 0.3s; }
+        
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); color: #cbd5e1; display: flex; flex-direction: column; position: fixed; height: 100vh; }
+        .brand { padding: 20px; font-size: 1.1rem; font-weight: 700; color: #ffffff; border-bottom: 1px solid #1e293b; }
+        .nav-menu { padding: 16px 0; display: flex; flex-direction: column; gap: 2px; }
+        .nav-btn { background: transparent; border: none; color: #94a3b8; padding: 10px 20px; text-align: left; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s;}
+        .nav-btn.active { color: #ffffff; background: #1e293b; border-left: 3px solid var(--accent); }
+        
+        /* Main Content */
+        .main-content { flex: 1; margin-left: var(--sidebar-width); display: flex; flex-direction: column; }
+        .time-engine { background: var(--bg-surface); padding: 16px 24px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+        .workspace-area { padding: 24px; }
+        .view-pane { display: none; }
+        .view-pane.active { display: block; }
+        
+        /* Dashboard Cards */
+        .dash-card { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border-light); margin-bottom: 24px; }
+        .recon-banner { background: var(--bg-surface); padding: 16px 24px; border-bottom: 1px solid var(--border-light); display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .recon-block { display: flex; flex-direction: column; gap: 4px; }
+        .recon-label { color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; font-weight: 600; }
+        .recon-val { font-weight: 700; font-size: 1.1rem; }
+        
+        button.theme-toggle { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand">Datum OS</div>
+        <nav class="nav-menu">
+            <button class="nav-btn active" onclick="app.switchTab('view-overview', this)">Overview</button>
+            <button class="nav-btn" onclick="app.switchTab('view-assets', this)">Assets</button>
+            <button class="nav-btn" onclick="app.switchTab('view-liab', this)">Obligations</button>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <header class="time-engine">
+            <h1>Datum OS Operational</h1>
+            <button class="theme-toggle" onclick="toggleTheme()">Dark/Light Mode</button>
+        </header>
+        
+        <div class="recon-banner">
+            <div class="recon-block"><span class="recon-label">Opening</span><span class="recon-val">₹0</span></div>
+            <div class="recon-block"><span class="recon-label">In</span><span class="recon-val" style="color:var(--success)">₹0</span></div>
+            <div class="recon-block"><span class="recon-label">Out</span><span class="recon-val" style="color:var(--danger)">₹0</span></div>
+            <div class="recon-block"><span class="recon-label">Closing</span><span class="recon-val">₹0</span></div>
+        </div>
+
+        <div class="workspace-area">
+            <div id="view-overview" class="view-pane active">
+                <div class="dash-card"><h2>Welcome to Datum OS</h2><p>Your institutional wealth framework is active.</p></div>
+            </div>
+            <div id="view-assets" class="view-pane">
+                <div class="dash-card"><h2>Assets</h2><p>Manage your capital foundation.</p></div>
+            </div>
+            <div id="view-liab" class="view-pane">
+                <div class="dash-card"><h2>Obligations</h2><p>Manage your liabilities here.</p></div>
+            </div>
+        </div>
+    </main>
+    <script>
+        const app = {
+            switchTab: function(id, btn) {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.view-pane').forEach(v => v.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(id).classList.add('active');
+            }
+        };
+        function toggleTheme() {
+            const root = document.documentElement;
+            root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        }
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js');
+    </script>
+</body>
+</html>
