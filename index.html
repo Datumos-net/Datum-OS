@@ -1,44 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#030712">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Datum OS</title>
+    
+    <link rel="icon" type="image/png" href="./icon.png">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon.png">
+    <meta name="theme-color" content="#030712">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
     <style>
-        :root { --bg: #030712; --text: #f8fafc; }
-        body { 
-            margin: 0; background-color: var(--bg); color: var(--text); 
-            font-family: 'Inter', sans-serif; height: 100vh;
-            background: radial-gradient(circle at 50% 0%, #1e293b 0%, #030712 70%);
-            display: flex; justify-content: center; align-items: center;
+        :root { --bg: #030712; --text: #f8fafc; --silver: #f8fafc; --accent: #94a3b8; }
+        
+        /* Splash Screen - Professional Boot Sequence */
+        #splash-screen {
+            position: fixed; inset: 0; background: var(--bg);
+            z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            transition: opacity 0.5s ease;
         }
+        .boot-content { text-align: center; width: 85%; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+        .boot-content h1 { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.8rem; color: var(--silver); margin: 0; }
+        .boot-content p { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 0.65rem; margin-top: 15px; letter-spacing: 0.2em; }
+        
+        .progress-track { width: 140px; height: 1px; background: #1e293b; margin: 25px auto 0; overflow: hidden; position: relative; }
+        .progress-bar { height: 100%; width: 0%; background: var(--silver); box-shadow: 0 0 10px var(--silver); animation: boot 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .progress-bar::after { content: ""; position: absolute; top: 0; right: 0; height: 100%; width: 30px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); animation: shimmer 1.8s infinite; }
+        
+        @keyframes boot { 0% { width: 0%; } 100% { width: 100%; } }
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .hidden { display: none !important; }
+
+        /* Main Content */
+        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; }
         .container { text-align: center; max-width: 420px; padding: 20px; }
         h1 { font-weight: 600; font-size: 3rem; letter-spacing: -0.05em; margin: 0; }
         p { color: #94a3b8; margin: 12px 0 40px; font-weight: 300; line-height: 1.6; }
-        
-        .auth-btn { 
-            background: #ffffff; color: #030712; border: none; padding: 12px 24px;
-            border-radius: 9999px; font-weight: 600; cursor: pointer; 
-            display: inline-flex; align-items: center; gap: 12px;
-            transition: transform 0.2s, background 0.2s; width: 100%; justify-content: center;
-        }
+        .auth-btn { background: #ffffff; color: #030712; border: none; padding: 12px 24px; border-radius: 9999px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; transition: transform 0.2s, background 0.2s; width: 100%; justify-content: center; }
         .auth-btn:hover { background: #e2e8f0; transform: scale(1.02); }
     </style>
 </head>
-    <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(reg => console.log('Service Worker Registered!'))
-                .catch(err => console.log('Service Worker Failed!', err));
-        });
-    }
-    </script>
 <body>
+
+    <div id="splash-screen">
+        <div class="boot-content">
+            <h1>Datum OS</h1>
+            <p>INITIALIZING</p>
+            <div class="progress-track"><div class="progress-bar"></div></div>
+        </div>
+    </div>
+
     <div class="container">
         <h1>Datum OS</h1>
         <p>A structured framework for the aggregation, reconciliation, and long-term oversight of personal capital.</p>
@@ -56,6 +72,20 @@
     </div>
 
     <script>
+        // Splash Screen Handoff
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 500);
+            }, 1800);
+        });
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./service-worker.js');
+        }
+
+        // Auth Callback
         function handleCredentialResponse(response) {
             localStorage.setItem('datum_session', 'active');
             window.location.href = 'dashboard.html';
