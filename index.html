@@ -14,32 +14,34 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
-        :root { --bg: #030712; --silver: #f8fafc; --accent: #94a3b8; }
+        :root { --bg: #030712; --text: #f8fafc; --silver: #f8fafc; --accent: #94a3b8; }
         
-        /* Optimized Splash Screen */
+        /* Splash Screen - Kept your original design */
         #splash-screen {
             position: fixed; inset: 0; background: var(--bg);
             z-index: 9999; display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.5s ease;
         }
-        .boot-content { text-align: center; width: 85%; }
+        .boot-content { text-align: center; width: 85%; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
         .boot-content h1 { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.8rem; color: var(--silver); margin: 0; }
         .boot-content p { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 0.65rem; margin-top: 15px; letter-spacing: 0.2em; }
         
         .progress-track { width: 140px; height: 1px; background: #1e293b; margin: 25px auto 0; overflow: hidden; position: relative; }
-        .progress-bar { height: 100%; width: 0%; background: var(--silver); box-shadow: 0 0 10px var(--silver); animation: boot 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-        .progress-bar::after { content: ""; position: absolute; top: 0; right: 0; height: 100%; width: 30px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); animation: shimmer 1.5s infinite; }
+        .progress-bar { height: 100%; width: 0%; background: var(--silver); box-shadow: 0 0 10px var(--silver); animation: boot 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .progress-bar::after { content: ""; position: absolute; top: 0; right: 0; height: 100%; width: 30px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); animation: shimmer 1.8s infinite; }
         
         @keyframes boot { 0% { width: 0%; } 100% { width: 100%; } }
         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .hidden { display: none !important; }
 
-        /* Main App Styles */
-        body { margin: 0; background-color: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        /* Main Content - Unchanged */
+        body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; }
         .container { text-align: center; max-width: 420px; padding: 20px; }
         h1 { font-weight: 600; font-size: 3rem; letter-spacing: -0.05em; margin: 0; }
         p { color: #94a3b8; margin: 12px 0 40px; font-weight: 300; line-height: 1.6; }
-        .auth-btn { background: #ffffff; color: #030712; border: none; padding: 12px 24px; border-radius: 9999px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; transition: transform 0.2s; width: 100%; justify-content: center; }
+        .auth-btn { background: #ffffff; color: #030712; border: none; padding: 12px 24px; border-radius: 9999px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; transition: transform 0.2s, background 0.2s; width: 100%; justify-content: center; }
         .auth-btn:hover { background: #e2e8f0; transform: scale(1.02); }
     </style>
 </head>
@@ -56,20 +58,34 @@
     <div class="container">
         <h1>Datum OS</h1>
         <p>A structured framework for the aggregation, reconciliation, and long-term oversight of personal capital.</p>
-        <button class="auth-btn" onclick="google.accounts.id.prompt()">Sign in with Google</button>
+        
+        <div id="g_id_onload"
+             data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+
+        <button class="auth-btn" onclick="google.accounts.id.prompt()">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Sign in with Google
+        </button>
     </div>
 
     <script>
-        // High-performance Handoff
+        // Use DOMContentLoaded to start the transition instantly
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                splash.style.opacity = '0';
-                setTimeout(() => splash.remove(), 500);
-            }, 1500);
+                document.getElementById('splash-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 500);
+            }, 1800);
         });
 
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./service-worker.js');
+        }
+
         function handleCredentialResponse(response) {
+            localStorage.setItem('datum_session', 'active');
             window.location.href = 'dashboard.html';
         }
     </script>
