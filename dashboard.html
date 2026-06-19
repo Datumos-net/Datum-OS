@@ -16,7 +16,7 @@
             --border-light: #334155; --text-muted: #94a3b8;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-app); color: var(--text-main); display: flex; min-height: 100vh; transition: background 0.3s; }
+        body { background-color: var(--bg-app); color: var(--text-main); display: flex; min-height: 100vh; }
         
         .sidebar { width: 240px; background: #0f172a; color: #cbd5e1; display: flex; flex-direction: column; position: fixed; height: 100vh; }
         .brand { padding: 20px; font-size: 1.1rem; font-weight: 700; color: #ffffff; border-bottom: 1px solid #1e293b; }
@@ -36,6 +36,7 @@
             <button class="nav-btn active" onclick="app.switchTab('view-overview', this)">Overview</button>
             <button class="nav-btn" onclick="app.switchTab('view-assets', this)">Assets</button>
             <button class="nav-btn" onclick="app.switchTab('view-liab', this)">Obligations</button>
+            <button class="nav-btn" onclick="app.logout()" style="margin-top:auto; color:#f87171;">Logout</button>
         </nav>
     </aside>
     <main class="main-content">
@@ -44,15 +45,23 @@
         </header>
         <div class="dashboard-grid">
             <div id="view-overview" class="dash-card"><h2>Overview</h2><p>System status: Nominal.</p></div>
-            <div id="view-assets" class="dash-card"><h2>Assets</h2><p>Capital foundation view.</p></div>
-            <div id="view-liab" class="dash-card"><h2>Obligations</h2><p>Liability management.</p></div>
         </div>
     </main>
     <script>
+        // --- SECURITY GUARD ---
+        // If the session doesn't exist, kick them back to login
+        if (!localStorage.getItem('datum_session')) {
+            window.location.href = 'index.html';
+        }
+
         const app = {
             switchTab: function(id, btn) {
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+            },
+            logout: function() {
+                localStorage.removeItem('datum_session');
+                window.location.href = 'index.html';
             }
         };
     </script>
