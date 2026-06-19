@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#030712">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Datum OS</title>
@@ -27,6 +29,15 @@
         .auth-btn:hover { background: #e2e8f0; transform: scale(1.02); }
     </style>
 </head>
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(reg => console.log('Service Worker Registered!'))
+                .catch(err => console.log('Service Worker Failed!', err));
+        });
+    }
+    </script>
 <body>
     <div class="container">
         <h1>Datum OS</h1>
