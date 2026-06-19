@@ -3,7 +3,7 @@
   "short_name": "Datum",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#030712",
+  "background_color": "#f8fafc", 
   "theme_color": "#030712",
   "icons": [
     {
