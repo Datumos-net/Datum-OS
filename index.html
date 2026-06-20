@@ -11,7 +11,7 @@
     <meta name="theme-color" content="#030712">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-    
+
     <style>
         :root { --bg: #030712; --text: #f8fafc; --silver: #f8fafc; --accent: #94a3b8; }
         
@@ -92,12 +92,10 @@
         <div id="error-message" class="error-text hidden"></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+        import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
-    <script>
-        // 1. YOUR FIREBASE CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyD08R3ddEbYstQMt0IJyMcBgg7JR-ptk8M",
             authDomain: "datum-os.firebaseapp.com",
@@ -107,21 +105,20 @@
             appId: "1:192360227468:web:cd8ee477d4e790063051a9"
         };
 
-        // 2. INITIALIZE FIREBASE
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const googleBtn = document.getElementById('google-btn');
 
-        // 3. THE ULTIMATE SOURCE OF TRUTH (Triggers instantly upon successful login)
-        auth.onAuthStateChanged((user) => {
+        // 1. THE ULTIMATE SOURCE OF TRUTH
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 localStorage.setItem('datum_session', 'active');
                 window.location.href = 'dashboard.html';
             }
         });
 
-        // 4. HANDLE RETURNS FROM REDIRECT
-        auth.getRedirectResult().then((result) => {
+        // 2. CATCH RETURNS FROM REDIRECT
+        getRedirectResult(auth).then((result) => {
             if (!result || !result.user) resetButtonState(); 
         }).catch((error) => {
             resetButtonState(); 
@@ -129,9 +126,7 @@
             showError("Authentication failed or was cancelled. Please try again.");
         });
 
-        // 5. DYNAMIC NETWORK LISTENERS
-        const googleBtn = document.getElementById('google-btn');
-        
+        // 3. DYNAMIC NETWORK LISTENERS
         window.addEventListener('offline', () => {
             resetButtonState();
             showError("Connection lost. Operating in offline mode.");
@@ -145,7 +140,7 @@
             googleBtn.style.pointerEvents = "auto";
         });
 
-        // 6. BULLETPROOF SIGN IN FUNCTION
+        // 4. BULLETPROOF SIGN IN FUNCTION (Exposed globally for the HTML button)
         window.signIn = function() {
             if (!navigator.onLine) {
                 showError("No network detected. Please connect to the internet.");
@@ -157,24 +152,23 @@
             document.getElementById('btn-icon').classList.add('hidden');
             document.getElementById('btn-spinner').classList.remove('hidden');
             document.getElementById('btn-text').textContent = "Connecting...";
-            googleBtn.style.pointerEvents = "none"; // Absolutely lock the button from double clicks
+            googleBtn.style.pointerEvents = "none"; 
 
-            // Fire the engine
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithRedirect(provider).catch((error) => {
+            // Fire the Modular engine
+            const provider = new GoogleAuthProvider();
+            signInWithRedirect(auth, provider).catch((error) => {
                 resetButtonState();
                 showError("Unable to reach Google servers. Please try again.");
             });
 
-            // THE DEADMAN'S SWITCH
-            // If the browser hasn't navigated away after 10 seconds, the redirect silently failed. Rescue the user.
+            // The Deadman's Switch (Still needed as a safety net for bad network latency)
             setTimeout(() => {
                 if (googleBtn.style.pointerEvents === "none") {
                     resetButtonState();
                     showError("Connection timed out. Google's secure server didn't respond.");
                 }
             }, 10000);
-        }
+        };
 
         // --- Helper Functions ---
         function resetButtonState() {
@@ -186,7 +180,7 @@
                 btnSpinner.classList.add('hidden');
                 btnIcon.classList.remove('hidden');
                 btnText.textContent = "Sign in with Google";
-                googleBtn.style.pointerEvents = "auto"; // Unlock the button
+                googleBtn.style.pointerEvents = "auto"; 
             }
         }
 
@@ -196,14 +190,15 @@
             errorDiv.classList.remove('hidden');
         }
 
-        // Handle page restores (Back-Forward Cache)
+        // Handle Back-Forward Cache
         window.addEventListener('pageshow', (event) => {
             if (event.persisted) {
                 resetButtonState();
             }
         });
+    </script>
 
-        // Splash screen logic
+    <script>
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 document.getElementById('splash-screen').style.opacity = '0';
@@ -211,7 +206,6 @@
             }, 1800);
         });
 
-        // Service Worker setup
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./service-worker.js').catch(err => {
                 console.log("Service Worker registration failed:", err);
