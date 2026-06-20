@@ -362,12 +362,21 @@
             if (icon) icon.innerHTML = '';
         }
 
+        // GENERIC ERROR CLEARING LOGIC
         document.querySelectorAll('.form-input').forEach(input => {
             input.addEventListener('input', function() {
-                if(this.id === 'su-username' || this.id === 'su-email') return; 
+                // 1. Remove the visual red border from the input itself
                 this.classList.remove('input-error');
-                const errorElement = this.parentElement.parentElement.querySelector('.inline-error');
-                if (errorElement) errorElement.classList.remove('active');
+
+                // 2. Find the error message element that lives inside the same group
+                // The .closest('.input-group') finds the parent wrapper that contains both the input and the error
+                const container = this.closest('.input-group');
+                const errorElement = container.querySelector('.inline-error');
+
+                // 3. Hide it if it exists
+                if (errorElement) {
+                    errorElement.classList.remove('active');
+                }
             });
         });
 
