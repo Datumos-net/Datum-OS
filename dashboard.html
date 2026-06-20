@@ -1,80 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#030712">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard | Datum OS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-app: #f4f4f5; --bg-surface: #ffffff; --bg-sidebar: #0f172a;
-            --text-main: #18181b; --text-muted: #71717a; --border-light: #e4e4e7;
-            --accent: #2563eb;
-        }
-        [data-theme="dark"] {
-            --bg-app: #0f172a; --bg-surface: #1e293b; --text-main: #f1f5f9;
-            --border-light: #334155; --text-muted: #94a3b8;
+        :root { 
+            --bg-base: #000000; --bg-surface: #0a0a0a; --text-main: #ededed; --text-muted: #888888; 
+            --border: #333333; --accent: #ffffff; --smooth: cubic-bezier(0.16, 1, 0.3, 1);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-app); color: var(--text-main); display: flex; min-height: 100vh; }
+        body { background-color: var(--bg-base); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+
+        /* Unified OS Backgrounds */
+        .bg-grid { position: absolute; inset: 0; z-index: -2; background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 10%, transparent 80%); }
+        .bg-spotlight { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 800px; height: 800px; z-index: -1; background: radial-gradient(circle, rgba(255,255,255,0.02) 0%, transparent 70%); pointer-events: none; }
+
+        /* Splash Screen */
+        #boot-screen { position: fixed; inset: 0; background: var(--bg-base); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
+        .boot-text { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.2em; }
+
+        /* Dashboard Structure */
+        .sidebar { width: 260px; background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(20px); border-right: 1px solid var(--border); padding: 32px; display: flex; flex-direction: column; }
+        .brand { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; margin-bottom: 48px; letter-spacing: -0.05em; }
+        .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 12px 0; text-align: left; font-size: 0.9rem; cursor: pointer; transition: all 0.3s var(--smooth); }
+        .nav-btn:hover, .nav-btn.active { color: var(--text-main); transform: translateX(4px); }
         
-        .sidebar { width: 240px; background: #0f172a; color: #cbd5e1; display: flex; flex-direction: column; position: fixed; height: 100vh; }
-        .brand { padding: 20px; font-size: 1.1rem; font-weight: 700; color: #ffffff; border-bottom: 1px solid #1e293b; }
-        .nav-btn { background: transparent; border: none; color: #94a3b8; padding: 12px 20px; text-align: left; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
-        .nav-btn.active { color: #ffffff; background: #1e293b; border-left: 3px solid var(--accent); }
+        .main-stage { flex: 1; padding: 48px; overflow-y: auto; }
+        .welcome-msg { font-size: 2.5rem; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.03em; }
+        .status-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); }
         
-        .main-content { flex: 1; margin-left: 240px; display: flex; flex-direction: column; }
-        .time-engine { background: var(--bg-surface); padding: 16px 24px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 24px; }
-        .dash-card { background: var(--bg-surface); border-radius: 12px; padding: 24px; border: 1px solid var(--border-light); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 48px; }
+        .card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 12px; padding: 32px; transition: border 0.3s ease; }
+        .card:hover { border-color: #555; }
+        .card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 12px; }
     </style>
 </head>
 <body>
+    <div class="bg-grid"></div>
+    <div class="bg-spotlight"></div>
+
+    <div id="boot-screen">
+        <div class="boot-text" id="boot-status">INITIALIZING SECURE SESSION...</div>
+    </div>
+
     <aside class="sidebar">
-        <div class="brand">Datum OS</div>
-        <nav style="display:flex; flex-direction:column; padding:16px 0;">
-            <button class="nav-btn active" onclick="app.switchTab('view-overview', this)">Overview</button>
-            <button class="nav-btn" onclick="app.switchTab('view-assets', this)">Assets</button>
-            <button class="nav-btn" onclick="app.switchTab('view-liab', this)">Obligations</button>
-            <button class="nav-btn" onclick="app.logout()" style="margin-top:auto; color:#f87171;">Logout</button>
-        </nav>
+        <div class="brand">DATUM // OS</div>
+        <button class="nav-btn active">Overview</button>
+        <button class="nav-btn">Assets</button>
+        <button class="nav-btn">Obligations</button>
+        <button id="btn-logout" class="nav-btn" style="margin-top:auto; color: #ef4444;">Disconnect</button>
     </aside>
-    <main class="main-content">
-        <header class="time-engine">
-            <h1>Operational</h1>
+
+    <main class="main-stage">
+        <header>
+            <h1 class="welcome-msg" id="user-welcome">Loading...</h1>
+            <div class="status-badge">SYSTEM STATUS: NOMINAL // ENCRYPTED</div>
         </header>
-        <div class="dashboard-grid">
-            <div id="view-overview" class="dash-card"><h2>Overview</h2><p>System status: Nominal.</p></div>
+        <div class="grid">
+            <div class="card"><h3>Node Integrity</h3><p>Secure Handshake Verified</p></div>
+            <div class="card"><h3>Cloud Latency</h3><p>Firebase // Low-Latency</p></div>
         </div>
     </main>
-    <script>
-        // --- SECURITY GUARD ---
-        // If the session doesn't exist, kick them back to login
-        if (!localStorage.getItem('datum_session')) {
-            window.location.href = 'index.html';
-        }
 
-        const app = {
-            switchTab: function(id, btn) {
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            },
-            logout: function() {
-                localStorage.removeItem('datum_session');
-                window.location.href = 'index.html';
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyD3O5NXqEL3rvSQpz8BK6rBtyoB2q0e9Nc", authDomain: "datum-os-net.firebaseapp.com", projectId: "datum-os-net", storageBucket: "datum-os-net.firebasestorage.app", messagingSenderId: "177069228699", appId: "1:177069228699:web:ba9e1f3ce27870a00cbc3e" };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    if (docSnap.exists()) {
+                        document.getElementById('user-welcome').textContent = `Welcome, ${docSnap.data().firstName}.`;
+                    }
+                    setTimeout(() => document.getElementById('boot-screen').style.opacity = '0', 800);
+                    setTimeout(() => document.getElementById('boot-screen').style.display = 'none', 1300);
+                } catch (e) {
+                    window.location.replace("index.html");
+                }
+            } else {
+                window.location.replace("index.html");
             }
-        };
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            signOut(auth).then(() => window.location.replace("index.html"));
+        });
     </script>
 </body>
-    <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(reg => console.log('Service Worker Registered!'))
-                .catch(err => console.log('Service Worker Failed!', err));
-        });
-    }
-    </script>
 </html>
