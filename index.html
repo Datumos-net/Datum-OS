@@ -44,7 +44,7 @@
         .container { text-align: center; max-width: 420px; padding: 20px; }
         h1 { font-weight: 600; font-size: 3rem; letter-spacing: -0.05em; margin: 0; }
         p { color: #94a3b8; margin: 12px 0 40px; font-weight: 300; line-height: 1.6; }
-        .auth-btn { background: #ffffff; color: #030712; border: none; padding: 12px 24px; border-radius: 9999px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; transition: transform 0.2s, background 0.2s; width: 100%; justify-content: center; }
+        .auth-btn { background: #ffffff; color: #030712; border: none; padding: 12px 24px; border-radius: 9999px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; transition: transform 0.2s, background 0.2s, opacity 0.3s; width: 100%; justify-content: center; }
         .auth-btn:hover { background: #e2e8f0; transform: scale(1.02); }
         
         /* Elegant Error Message Styling */
@@ -97,7 +97,6 @@
     </div>
 
     <script>
-        // We ensure Firebase initializes only after the deferred scripts load
         window.addEventListener('load', () => {
             // 1. YOUR FIREBASE CONFIGURATION
             const firebaseConfig = {
@@ -114,85 +113,103 @@
             const auth = firebase.auth();
             const db = firebase.firestore();
 
-            // 3. CHECK FOR REDIRECT RESULTS & HANDLE ERRORS
-            auth.getRedirectResult().then((result) => {
-                if (result && result.user) {
-                    // Login successful
+            // ADVANCED FEATURE 1: The Ultimate Source of Truth
+            // This monitors Firebase's actual state. The moment authentication is verified anywhere, it fires.
+            auth.onAuthStateChanged((user) => {
+                if (user) {
                     localStorage.setItem('datum_session', 'active');
                     window.location.href = 'dashboard.html';
-                } else {
-                    // If they returned without logging in, ensure button is reset
-                    resetButtonState();
                 }
-            }).catch((error) => {
-                resetButtonState(); // Instantly revert button on error or cancel
-                
-                if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                    return; // Fail silently
-                }
-                
-                const errorDiv = document.getElementById('error-message');
-                if (error.code === 'auth/network-request-failed') {
-                    errorDiv.textContent = "Network error. Please check your internet connection.";
-                } else {
-                    errorDiv.textContent = "Authentication failed. Please try again.";
-                }
-                errorDiv.classList.remove('hidden');
             });
+
+            // Handle manual returns from the Google redirect
+            auth.getRedirectResult().then((result) => {
+                if (!result || !result.user) resetButtonState(); // Returned without logging in
+            }).catch((error) => {
+                resetButtonState(); 
+                if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') return; 
+                showError(error.code === 'auth/network-request-failed' ? "Network error. Please check your internet connection." : "Authentication failed. Please try again.");
+            });
+
+            // ADVANCED FEATURE 2: Dynamic Network Listeners
+            const googleBtn = document.getElementById('google-btn');
             
-            // Attach signIn to global window object so the HTML button can see it
+            window.addEventListener('offline', () => {
+                resetButtonState();
+                showError("Connection lost. Operating in offline mode.");
+                googleBtn.style.opacity = "0.6"; // Visually disable the button instantly
+                googleBtn.style.pointerEvents = "none";
+            });
+
+            window.addEventListener('online', () => {
+                document.getElementById('error-message').classList.add('hidden');
+                googleBtn.style.opacity = "1"; // Reactivate the button instantly
+                googleBtn.style.pointerEvents = "auto";
+            });
+
+            // ADVANCED FEATURE 3: Master Sign In Function with User Abort
             window.signIn = function() {
-                const errorDiv = document.getElementById('error-message');
-                const btnIcon = document.getElementById('btn-icon');
-                const btnSpinner = document.getElementById('btn-spinner');
-                const btnText = document.getElementById('btn-text');
-                const googleBtn = document.getElementById('google-btn');
+                const btnText = document.getElementById('btn-text').textContent;
 
-                // Hide previous errors
-                errorDiv.classList.add('hidden');
+                // If it's already loading, tapping it again explicitly cancels the attempt
+                if (btnText === "Connecting...") {
+                    resetButtonState();
+                    return;
+                }
 
-                // Instant Pre-flight Offline Check
                 if (!navigator.onLine) {
-                    errorDiv.textContent = "No network detected. Please connect to the internet.";
-                    errorDiv.classList.remove('hidden');
+                    showError("No network detected. Please connect to the internet.");
                     return; 
                 }
 
-                // Trigger the elegant "Connecting" UI state
-                btnIcon.classList.add('hidden');
-                btnSpinner.classList.remove('hidden');
-                btnText.textContent = "Connecting...";
-                googleBtn.style.pointerEvents = "none"; 
+                setLoadingState();
 
-                // Proceed to Firebase
+                // Fire the engine
                 const provider = new firebase.auth.GoogleAuthProvider();
-                auth.signInWithRedirect(provider);
+                auth.signInWithRedirect(provider).catch((error) => {
+                    resetButtonState();
+                    showError("Unable to reach Google servers. Please try again.");
+                });
+            }
+
+            // --- Modular UI Helper Functions ---
+            function setLoadingState() {
+                document.getElementById('error-message').classList.add('hidden');
+                document.getElementById('btn-icon').classList.add('hidden');
+                document.getElementById('btn-spinner').classList.remove('hidden');
+                document.getElementById('btn-text').textContent = "Connecting...";
+                // We keep pointerEvents on "auto" so the user can click again to abort
+            }
+
+            function resetButtonState() {
+                const btnIcon = document.getElementById('btn-icon');
+                const btnSpinner = document.getElementById('btn-spinner');
+                const btnText = document.getElementById('btn-text');
+                
+                if (btnIcon && btnSpinner) {
+                    btnSpinner.classList.add('hidden');
+                    btnIcon.classList.remove('hidden');
+                    btnText.textContent = "Sign in with Google";
+                }
+            }
+
+            function showError(message) {
+                const errorDiv = document.getElementById('error-message');
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
             }
         });
 
-        // FIX: The Reset Function (brings the button back to its default state)
-        function resetButtonState() {
-            const btnIcon = document.getElementById('btn-icon');
-            const btnSpinner = document.getElementById('btn-spinner');
-            const btnText = document.getElementById('btn-text');
-            const googleBtn = document.getElementById('google-btn');
-            
-            if (btnIcon && btnSpinner) {
-                btnSpinner.classList.add('hidden');
-                btnIcon.classList.remove('hidden');
-                btnText.textContent = "Sign in with Google";
-                googleBtn.style.pointerEvents = "auto";
-            }
-        }
-
-        // FIX: Handle "Back-Forward Cache" so the button resets if the user hits the back button
+        // Handle page restores (Back-Forward Cache)
         window.addEventListener('pageshow', (event) => {
             if (event.persisted) {
-                resetButtonState();
+                document.getElementById('btn-spinner').classList.add('hidden');
+                document.getElementById('btn-icon').classList.remove('hidden');
+                document.getElementById('btn-text').textContent = "Sign in with Google";
             }
         });
 
-        // 5. SPLASH SCREEN ANIMATION LOGIC
+        // Splash screen logic
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 document.getElementById('splash-screen').style.opacity = '0';
@@ -200,7 +217,7 @@
             }, 1800);
         });
 
-        // 6. SERVICE WORKER REGISTRATION
+        // Service Worker setup
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./service-worker.js').catch(err => {
                 console.log("Service Worker registration failed:", err);
