@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Datum OS</title>
+    
+    <link rel="icon" type="image/png" href="./icon.png">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon.png">
+    <meta name="theme-color" content="#000000">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Ultra-Minimalist Enterprise Theme */
+        :root { 
+            --bg-base: #000000;
+            --bg-surface: #0a0a0a;
+            --text-main: #ededed; 
+            --text-muted: #888888; 
+            
+            /* Precision Inputs */
+            --input-bg: transparent;
+            --input-border: #333333;
+            --input-focus: #ededed;
+            
+            /* Professional Semantic Colors */
+            --error-red: #ef4444;       
+            --error-ring: rgba(239, 68, 68, 0.2); 
+            --success-green: #10b981;   
+            
+            /* Physics */
+            --smooth: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-base); color: var(--text-main); 
+            height: 100vh; display: flex; justify-content: center; align-items: center; 
+            touch-action: manipulation; position: relative; overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Architectural Grid Background */
+        .bg-grid {
+            position: absolute; inset: 0; z-index: -2;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(circle at center, black 10%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at center, black 10%, transparent 80%);
+        }
+        .bg-spotlight {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 600px; height: 600px; z-index: -1;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%); pointer-events: none;
+        }
+        
+        /* ADVANCED TELEMETRY SPLASH SCREEN */
+        #splash-screen {
+            position: fixed; inset: 0; background: var(--bg-base); z-index: 9999; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.6s var(--smooth);
+        }
+        .boot-content { text-align: center; width: 85%; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .boot-content h1 { font-weight: 600; font-size: 1.8rem; color: var(--text-main); margin: 0; letter-spacing: -0.02em; }
+        .boot-content p { font-family: 'JetBrains Mono', monospace; color: var(--text-muted); font-size: 0.65rem; margin-top: 15px; letter-spacing: 0.15em; transition: opacity 0.2s; }
+        
+        /* Telemetry Readout */
+        .telemetry-data { font-family: 'JetBrains Mono', monospace; color: var(--text-main); font-size: 0.85rem; font-weight: 700; margin-top: 10px; letter-spacing: 0.1em; }
+        
+        .progress-track { width: 160px; height: 2px; background: #333; margin: 10px auto 0; overflow: hidden; position: relative; border-radius: 2px; }
+        .progress-bar { height: 100%; width: 0%; background: var(--text-main); box-shadow: 0 0 12px var(--text-main); animation: boot 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes boot { 0% { width: 0%; } 100% { width: 100%; } }
+        .hidden { display: none !important; opacity: 0; pointer-events: none; }
+
+        /* Terminal Container */
+        .container { 
+            width: 100%; max-width: 400px; padding: 40px 32px; text-align: left; 
+            background: rgba(10, 10, 10, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4); margin: 20px;
+        }
+        .logo-header { font-weight: 600; font-size: 2rem; letter-spacing: -0.05em; margin-bottom: 6px; color: var(--text-main); text-align: center; }
+        .sub-header { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 32px; font-weight: 400; line-height: 1.6; text-align: center; transition: opacity 0.3s; }
+        
+        /* SPA Views */
+        .view { display: none; opacity: 0; transition: opacity 0.3s var(--smooth); }
+        .view.active { display: block; opacity: 1; animation: slideUp 0.4s var(--smooth); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* MAGNETIC HIGH-PRECISION INPUTS */
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-label { display: block; font-size: 0.8rem; font-weight: 500; color: #a1a1aa; margin-bottom: 8px; }
+        
+        .input-icon-wrapper { position: relative; display: flex; align-items: center; }
+        .input-icon { position: absolute; right: 12px; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+        
+        /* Password Toggle specifics */
+        .toggle-pass { pointer-events: auto; cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
+        .toggle-pass:hover { color: var(--text-main); }
+        .toggle-pass svg { stroke: currentColor; }
+
+        .form-input { 
+            width: 100%; background: var(--input-bg); color: var(--text-main); 
+            border: 1px solid var(--input-border); padding: 0 14px; height: 44px; border-radius: 6px; 
+            font-size: 0.95rem; outline: none; transition: all 0.2s var(--smooth); 
+            -webkit-appearance: none; font-weight: 400; transform-origin: center;
+        }
+        .input-icon-wrapper .form-input { padding-right: 40px; } 
+
+        /* The Magnetic Focus Effect */
+        .form-input:focus { border-color: var(--input-focus); box-shadow: 0 0 0 1px var(--input-focus); transform: scale(1.01); }
+        .form-input::placeholder { color: #52525b; font-weight: 400; }
+        .form-input.input-error { border-color: var(--error-red); box-shadow: 0 0 0 2px var(--error-ring); }
+        
+        .optional-tag { color: #52525b; font-size: 0.65rem; font-weight: 600; float: right; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Status & Error Messages */
+        .inline-status-container { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 6px; min-height: 16px; }
+        .inline-error { color: var(--error-red); font-size: 0.75rem; font-weight: 500; opacity: 0; transition: opacity 0.2s; }
+        .inline-error.active { opacity: 1; }
+        
+        .inline-success { color: var(--success-green); font-size: 0.75rem; font-weight: 500; opacity: 0; transition: opacity 0.2s; text-align: right; }
+        .inline-success.active { opacity: 1; }
+
+        .form-success-msg { color: var(--success-green); font-size: 0.85rem; font-weight: 500; text-align: center; margin-top: 12px; display: none; }
+        .form-success-msg.active { display: block; animation: fadeIn 0.2s ease; }
+
+        /* Kinetic Buttons */
+        .auth-btn { 
+            background: var(--text-main); color: var(--bg-base); border: none; height: 44px; border-radius: 6px; 
+            font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s var(--smooth); width: 100%; margin-top: 12px; outline: none; -webkit-tap-highlight-color: transparent; position: relative;
+        }
+        .auth-btn:hover { background: #ffffff; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(255,255,255,0.1); }
+        .auth-btn:active { transform: translateY(0) scale(0.98); box-shadow: 0 2px 4px rgba(255,255,255,0.1); }
+        .auth-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        .auth-btn-secondary { background: transparent; color: var(--text-main); border: 1px solid var(--input-border); margin-top: 16px; }
+        .auth-btn-secondary:hover { background: rgba(255,255,255,0.05); border-color: #555; transform: translateY(0); box-shadow: none; }
+
+        /* Enterprise SVG Spinner */
+        .spinner-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .svg-spinner { width: 20px; height: 20px; animation: rotate 2s linear infinite; }
+        .svg-spinner circle { stroke: var(--bg-base); stroke-width: 3; stroke-dasharray: 1, 200; stroke-dashoffset: 0; animation: dash 1.5s ease-in-out infinite; stroke-linecap: round; fill: none; }
+        .auth-btn-secondary .svg-spinner circle { stroke: var(--text-main); }
+        .input-icon .svg-spinner { width: 16px; height: 16px; }
+        .input-icon .svg-spinner circle { stroke: var(--text-muted); stroke-width: 2.5; }
+        
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        @keyframes dash { 0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 200; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 200; stroke-dashoffset: -124px; } }
+
+        /* Links & Utility */
+        .text-link { color: var(--text-muted); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: color 0.2s; }
+        .text-link:hover { color: var(--text-main); }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        
+        .divider { height: 1px; background: var(--input-border); margin: 28px 0; position: relative; }
+        .divider::after { content: "New to Datum?"; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #0a0a0a; padding: 0 12px; font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+        
+        .profile-badge { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 6px; border: 1px solid var(--input-border); margin-bottom: 24px; }
+        .profile-badge span { font-weight: 500; font-size: 0.95rem; color: var(--text-main); }
+        .change-link { font-size: 0.8rem; color: var(--text-muted); cursor: pointer; margin-left: auto; font-weight: 500; transition: color 0.2s; }
+        .change-link:hover { color: var(--text-main); }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div class="bg-spotlight"></div>
+
+    <div id="splash-screen">
+        <div class="boot-content">
+            <h1>Datum OS</h1>
+            <p id="boot-text">INITIALIZING SECURE KERNEL...</p>
+            <div class="telemetry-data" id="boot-percentage">0%</div>
+            <div class="progress-track"><div class="progress-bar"></div></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="logo-header">Datum OS</h1>
+        <p class="sub-header" id="dynamic-subheader">Sign in to your account</p>
+        
+        <div id="view-signin-1" class="view active">
+            <form id="form-si-1" novalidate onsubmit="handleSignInStep1(event)">
+                <div class="input-group">
+                    <label class="input-label">Username</label>
+                    <input type="text" id="si-username" class="form-input" placeholder="Enter username" autocomplete="off" autocorrect="off" autocapitalize="none">
+                    <div class="inline-status-container">
+                        <div id="err-si-1" class="inline-error">Enter your username</div>
+                    </div>
+                </div>
+                <button type="submit" id="btn-si-1" class="auth-btn">
+                    <span class="spinner-wrapper hidden" id="spin-si-1"><svg class="svg-spinner" viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"></circle></svg></span>
+                    <span id="text-si-1">Next</span>
+                </button>
+            </form>
+            <div class="divider"></div>
+            <button type="button" onclick="switchView('view-signup')" class="auth-btn auth-btn-secondary">Create your Datum account</button>
+        </div>
+
+        <div id="view-signin-2" class="view">
+            <div class="profile-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span id="display-username"></span>
+                <div class="change-link" onclick="switchView('view-signin-1')">Change</div>
+            </div>
+            <form id="form-si-2" novalidate onsubmit="handleSignInStep2(event)">
+                <div class="input-group">
+                    <div class="flex-between">
+                        <label class="input-label" style="margin-bottom:0;">Password</label>
+                        <span class="text-link" onclick="handleForgotPassword()">Forgot password?</span>
+                    </div>
+                    <div class="input-icon-wrapper">
+                        <input type="password" id="si-pass" class="form-input" placeholder="Enter password">
+                        <div class="input-icon toggle-pass" onclick="togglePassword('si-pass', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </div>
+                    </div>
+                    <div class="inline-status-container">
+                        <div id="err-si-2" class="inline-error">Enter your password</div>
+                    </div>
+                </div>
+                <button type="submit" id="btn-si-2" class="auth-btn">
+                    <span class="spinner-wrapper hidden" id="spin-si-2"><svg class="svg-spinner" viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"></circle></svg></span>
+                    <span id="text-si-2">Sign in</span>
+                </button>
+            </form>
+            <div id="succ-form-si" class="form-success-msg"></div>
+        </div>
+
+        <div id="view-signup" class="view">
+            <form id="form-su" novalidate onsubmit="handleSignUp(event)">
+                
+                <div class="input-group">
+                    <label class="input-label">Username</label>
+                    <div class="input-icon-wrapper">
+                        <input type="text" id="su-username" class="form-input" placeholder="e.g. Alex682" autocomplete="off" autocorrect="off" autocapitalize="none">
+                        <div class="input-icon" id="su-user-icon"></div>
+                    </div>
+                    <div class="inline-status-container">
+                        <div id="err-su-user" class="inline-error">Username requires 4 characters</div>
+                        <div id="succ-su-user" class="inline-success">Available</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <div class="input-group" style="flex: 1;">
+                        <label class="input-label">First Name</label>
+                        <input type="text" id="su-fname" class="form-input" placeholder="Alex">
+                        <div class="inline-status-container"><div id="err-su-fname" class="inline-error">Required</div></div>
+                    </div>
+                    <div class="input-group" style="flex: 1;">
+                        <label class="input-label">Last Name</label>
+                        <input type="text" id="su-lname" class="form-input" placeholder="Smith">
+                        <div class="inline-status-container"><div id="err-su-lname" class="inline-error">Required</div></div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Email Address <span class="optional-tag">Optional</span></label>
+                    <input type="email" id="su-email" class="form-input" placeholder="Used for password recovery">
+                    <div class="inline-status-container">
+                        <div id="err-su-email" class="inline-error">Please enter a valid email</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Password</label>
+                    <div class="input-icon-wrapper">
+                        <input type="password" id="su-pass" class="form-input" placeholder="At least 6 characters">
+                        <div class="input-icon toggle-pass" onclick="togglePassword('su-pass', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </div>
+                    </div>
+                    <div class="inline-status-container">
+                        <div id="err-su-pass" class="inline-error">Password must be at least 6 characters</div>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-su" class="auth-btn">
+                    <span class="spinner-wrapper hidden" id="spin-su"><svg class="svg-spinner" viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"></circle></svg></span>
+                    <span id="text-su">Create account</span>
+                </button>
+            </form>
+            
+            <div id="succ-form-su" class="form-success-msg"></div>
+
+            <div style="text-align: center; margin-top: 28px;">
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Already have an account? </span>
+                <span class="text-link" style="color: var(--text-main);" onclick="switchView('view-signin-1')">Sign in</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let tempUsername = "";
+
+        // Core View Router
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            clearAllErrors();
+            
+            const sub = document.getElementById('dynamic-subheader');
+            sub.style.opacity = '0';
+            
+            setTimeout(() => {
+                if(viewId === 'view-signin-1') {
+                    sub.textContent = "Sign in to your account";
+                    document.getElementById('si-pass').value = ''; 
+                } else if (viewId === 'view-signup') {
+                    sub.textContent = "Create your secure profile";
+                } else if (viewId === 'view-signin-2') {
+                    sub.textContent = "Verify your identity";
+                }
+                sub.style.opacity = '1';
+            }, 150);
+        };
+
+        // Password Toggle Engine
+        window.togglePassword = function(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            const eyeOpen = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            const eyeClosed = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            
+            if (input.type === "password") {
+                input.type = "text";
+                iconElement.innerHTML = eyeClosed;
+            } else {
+                input.type = "password";
+                iconElement.innerHTML = eyeOpen;
+            }
+        };
+
+        // Custom Validation Tools
+        function showError(inputId, errorId, message) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+            input.classList.add('input-error');
+            error.textContent = message;
+            error.classList.add('active');
+        }
+
+        function clearError(inputId, errorId) {
+            document.getElementById(inputId).classList.remove('input-error');
+            document.getElementById(errorId).classList.remove('active');
+        }
+
+        function clearAllErrors() {
+            document.querySelectorAll('.form-input').forEach(el => el.classList.remove('input-error'));
+            document.querySelectorAll('.inline-error').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.inline-success').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.form-success-msg').forEach(el => el.classList.remove('active'));
+            const icon = document.getElementById('su-user-icon');
+            if (icon) icon.innerHTML = '';
+        }
+
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('input', function() {
+                if(this.id === 'su-username' || this.id === 'su-email') return; 
+                this.classList.remove('input-error');
+                const errorElement = this.parentElement.parentElement.querySelector('.inline-error');
+                if (errorElement) errorElement.classList.remove('active');
+            });
+        });
+
+        // Email Regex
+        const emailInput = document.getElementById('su-email');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+        emailInput.addEventListener('input', function() {
+            const val = this.value.trim();
+            if (val.length > 0 && !emailRegex.test(val)) {
+                showError('su-email', 'err-su-email', 'Please enter a valid email format');
+            } else {
+                clearError('su-email', 'err-su-email');
+            }
+        });
+
+        // LIVE USERNAME CHECKER (4 Characters + Premium Shield Icon)
+        let usernameTimeout;
+        const suUsernameInput = document.getElementById('su-username');
+        const suUserIcon = document.getElementById('su-user-icon');
+        const errSuUser = document.getElementById('err-su-user');
+        const succSuUser = document.getElementById('succ-su-user');
+
+        const successIconSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+        const errorIconSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--error-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+
+        suUsernameInput.addEventListener('input', function() {
+            clearTimeout(usernameTimeout);
+            const val = this.value.trim();
+            
+            suUserIcon.innerHTML = ''; 
+            errSuUser.classList.remove('active');
+            succSuUser.classList.remove('active');
+            this.classList.remove('input-error');
+
+            if (val.length === 0) return;
+
+            if (val.length < 4) {
+                showError('su-username', 'err-su-user', 'Username requires 4 characters');
+                suUserIcon.innerHTML = errorIconSVG;
+                return;
+            }
+
+            suUserIcon.innerHTML = `<svg class="svg-spinner" viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"></circle></svg>`;
+
+            usernameTimeout = setTimeout(() => {
+                if (val.toLowerCase() === "admin" || val.toLowerCase() === "taken") {
+                    showError('su-username', 'err-su-user', 'This username is already taken');
+                    suUserIcon.innerHTML = errorIconSVG;
+                } else {
+                    succSuUser.classList.add('active');
+                    suUserIcon.innerHTML = successIconSVG;
+                }
+            }, 600);
+        });
+
+        // Mock Sign Ins
+        window.handleSignInStep1 = function(event) {
+            event.preventDefault();
+            const input = document.getElementById('si-username');
+            if (input.value.trim().length < 4) return showError('si-username', 'err-si-1', 'Username requires at least 4 characters');
+
+            setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', true);
+            setTimeout(() => {
+                setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', false);
+                tempUsername = input.value.trim();
+                document.getElementById('display-username').textContent = tempUsername;
+                switchView('view-signin-2');
+            }, 800);
+        };
+
+        window.handleSignInStep2 = function(event) {
+            event.preventDefault();
+            const input = document.getElementById('si-pass');
+            if (input.value.trim().length < 6) return showError('si-pass', 'err-si-2', 'Password must be at least 6 characters');
+
+            setBtnLoading('btn-si-2', 'spin-si-2', 'text-si-2', true);
+            setTimeout(() => {
+                setBtnLoading('btn-si-2', 'spin-si-2', 'text-si-2', false);
+                const msg = document.getElementById('succ-form-si');
+                msg.textContent = 'Login Successful! Redirecting...';
+                msg.classList.add('active');
+            }, 1200);
+        };
+
+        window.handleForgotPassword = function() {
+            clearAllErrors();
+            const msg = document.getElementById('succ-form-si');
+            msg.textContent = 'A secure reset link has been sent to your email.';
+            msg.classList.add('active');
+        };
+
+        window.handleSignUp = function(event) {
+            event.preventDefault();
+            let isValid = true;
+            
+            if (document.getElementById('su-username').value.trim().length < 4) { showError('su-username', 'err-su-user', 'Required'); isValid = false; }
+            if (!document.getElementById('su-fname').value.trim()) { showError('su-fname', 'err-su-fname', 'Required'); isValid = false; }
+            if (!document.getElementById('su-lname').value.trim()) { showError('su-lname', 'err-su-lname', 'Required'); isValid = false; }
+            if (document.getElementById('su-pass').value.length < 6) { showError('su-pass', 'err-su-pass', 'At least 6 characters required'); isValid = false; }
+            
+            if (document.querySelectorAll('.input-error').length > 0) isValid = false;
+            if (!isValid) return;
+
+            setBtnLoading('btn-su', 'spin-su', 'text-su', true);
+            setTimeout(() => {
+                setBtnLoading('btn-su', 'spin-su', 'text-su', false);
+                const msg = document.getElementById('succ-form-su');
+                msg.textContent = 'Account created successfully! Initializing...';
+                msg.classList.add('active');
+            }, 1500);
+        };
+
+        function setBtnLoading(btnId, spinId, textId, isLoading) {
+            const btn = document.getElementById(btnId);
+            const spinWrapper = document.getElementById(spinId);
+            const txt = document.getElementById(textId);
+            if (isLoading) {
+                btn.disabled = true; spinWrapper.classList.remove('hidden'); txt.style.opacity = '0'; 
+            } else {
+                btn.disabled = false; spinWrapper.classList.add('hidden'); txt.style.opacity = '1';
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const bootText = document.getElementById('boot-text');
+            const pctEl = document.getElementById('boot-percentage');
+            const sequence = ['VERIFYING CRYPTOGRAPHY...', 'SECURING CONNECTION...', 'READY.'];
+            let index = 0;
+            let percent = 0;
+
+            // Live Percentage Counter
+            const pctInterval = setInterval(() => {
+                percent += Math.floor(Math.random() * 6) + 2; // Random jumps for realistic data loading
+                if(percent >= 99) percent = 99;
+                pctEl.textContent = percent + '%';
+            }, 55);
+
+            // Text Phasing
+            const bootInterval = setInterval(() => {
+                if(index < sequence.length) {
+                    bootText.style.opacity = '0';
+                    setTimeout(() => {
+                        bootText.textContent = sequence[index];
+                        bootText.style.opacity = '1';
+                        index++;
+                    }, 150);
+                }
+            }, 450);
+
+            // Synchronization & Exit
+            setTimeout(() => {
+                clearInterval(pctInterval);
+                clearInterval(bootInterval);
+                pctEl.textContent = '100%';
+                
+                setTimeout(() => {
+                    document.getElementById('splash-screen').style.opacity = '0';
+                    setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 600);
+                }, 150);
+            }, 1800);
+        });
+
+        // PWA Zoom Lock
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+            document.body.style.touchAction = 'manipulation';
+        }
+    </script>
+</body>
+</html>
