@@ -15,13 +15,13 @@
     <style>
         /* Disable text selection across the entire app for a native look */
         body {
-            -webkit-user-select: none; /* Safari */
-            -ms-user-select: none;     /* IE 10 and IE 11 */
-            user-select: none;         /* Standard syntax */
-            -webkit-tap-highlight-color: transparent; /* Removes flash on mobile tap */
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Ensure form inputs remain selectable so users can edit their text */
+        /* Ensure form inputs remain selectable */
         input, textarea {
             -webkit-user-select: text;
             user-select: text;
@@ -29,22 +29,9 @@
 
         /* Ultra-Minimalist Enterprise Theme */
         :root { 
-            --bg-base: #000000;
-            --bg-surface: #0a0a0a;
-            --text-main: #ededed; 
-            --text-muted: #888888; 
-            
-            /* Precision Inputs */
-            --input-bg: transparent;
-            --input-border: #333333;
-            --input-focus: #ededed;
-            
-            /* Professional Semantic Colors */
-            --error-red: #ef4444;       
-            --error-ring: rgba(239, 68, 68, 0.2); 
-            --success-green: #10b981;   
-            
-            /* Physics */
+            --bg-base: #000000; --bg-surface: #0a0a0a; --text-main: #ededed; --text-muted: #888888; 
+            --input-bg: transparent; --input-border: #333333; --input-focus: #ededed;
+            --error-red: #ef4444; --error-ring: rgba(239, 68, 68, 0.2); --success-green: #10b981; 
             --smooth: cubic-bezier(0.16, 1, 0.3, 1);
         }
         
@@ -57,106 +44,58 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Architectural Grid Background */
-        .bg-grid {
-            position: absolute; inset: 0; z-index: -2;
-            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            mask-image: radial-gradient(circle at center, black 10%, transparent 80%);
-            -webkit-mask-image: radial-gradient(circle at center, black 10%, transparent 80%);
-        }
-        .bg-spotlight {
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 600px; height: 600px; z-index: -1;
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%); pointer-events: none;
-        }
+        .bg-grid { position: absolute; inset: 0; z-index: -2; background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 10%, transparent 80%); -webkit-mask-image: radial-gradient(circle at center, black 10%, transparent 80%); }
+        .bg-spotlight { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; z-index: -1; background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%); pointer-events: none; }
         
-        /* ADVANCED TELEMETRY SPLASH SCREEN */
-        #splash-screen {
-            position: fixed; inset: 0; background: var(--bg-base); z-index: 9999; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.6s var(--smooth);
-        }
+        #splash-screen { position: fixed; inset: 0; background: var(--bg-base); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.6s var(--smooth); }
         .boot-content { text-align: center; width: 85%; animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .boot-content h1 { font-weight: 600; font-size: 1.8rem; color: var(--text-main); margin: 0; letter-spacing: -0.02em; }
         .boot-content p { font-family: 'JetBrains Mono', monospace; color: var(--text-muted); font-size: 0.65rem; margin-top: 15px; letter-spacing: 0.15em; transition: opacity 0.2s; }
         
-        /* Telemetry Readout */
         .telemetry-data { font-family: 'JetBrains Mono', monospace; color: var(--text-main); font-size: 0.85rem; font-weight: 700; margin-top: 10px; letter-spacing: 0.1em; }
-        
         .progress-track { width: 160px; height: 2px; background: #333; margin: 10px auto 0; overflow: hidden; position: relative; border-radius: 2px; }
         .progress-bar { height: 100%; width: 0%; background: var(--text-main); box-shadow: 0 0 12px var(--text-main); animation: boot 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
         @keyframes boot { 0% { width: 0%; } 100% { width: 100%; } }
         .hidden { display: none !important; opacity: 0; pointer-events: none; }
 
-        /* Terminal Container */
-        .container { 
-            width: 100%; max-width: 400px; padding: 40px 32px; text-align: left; 
-            background: rgba(10, 10, 10, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4); margin: 20px;
-        }
+        .container { width: 100%; max-width: 400px; padding: 40px 32px; text-align: left; background: rgba(10, 10, 10, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 30px 60px rgba(0,0,0,0.4); margin: 20px; }
         .logo-header { font-weight: 600; font-size: 2rem; letter-spacing: -0.05em; margin-bottom: 6px; color: var(--text-main); text-align: center; }
         .sub-header { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 32px; font-weight: 400; line-height: 1.6; text-align: center; transition: opacity 0.3s; }
         
-        /* SPA Views */
         .view { display: none; opacity: 0; transition: opacity 0.3s var(--smooth); }
         .view.active { display: block; opacity: 1; animation: slideUp 0.4s var(--smooth); }
         @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* MAGNETIC HIGH-PRECISION INPUTS */
         .input-group { margin-bottom: 20px; position: relative; }
         .input-label { display: block; font-size: 0.8rem; font-weight: 500; color: #a1a1aa; margin-bottom: 8px; }
-        
         .input-icon-wrapper { position: relative; display: flex; align-items: center; }
         .input-icon { position: absolute; right: 12px; pointer-events: none; display: flex; align-items: center; justify-content: center; }
-        
-        /* Password Toggle specifics */
         .toggle-pass { pointer-events: auto; cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
         .toggle-pass:hover { color: var(--text-main); }
         .toggle-pass svg { stroke: currentColor; }
 
-        .form-input { 
-            width: 100%; background: var(--input-bg); color: var(--text-main); 
-            border: 1px solid var(--input-border); padding: 0 14px; height: 44px; border-radius: 6px; 
-            font-size: 0.95rem; outline: none; transition: all 0.2s var(--smooth); 
-            -webkit-appearance: none; font-weight: 400; transform-origin: center;
-        }
+        .form-input { width: 100%; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--input-border); padding: 0 14px; height: 44px; border-radius: 6px; font-size: 0.95rem; outline: none; transition: all 0.2s var(--smooth); -webkit-appearance: none; font-weight: 400; transform-origin: center; }
         .input-icon-wrapper .form-input { padding-right: 40px; } 
-
-        /* The Magnetic Focus Effect */
         .form-input:focus { border-color: var(--input-focus); box-shadow: 0 0 0 1px var(--input-focus); transform: scale(1.01); }
-        .form-input::placeholder { color: #52525b; font-weight: 400; }
         .form-input.input-error { border-color: var(--error-red); box-shadow: 0 0 0 2px var(--error-ring); }
         
-        .optional-tag { color: #52525b; font-size: 0.65rem; font-weight: 600; float: right; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
-
-        /* Status & Error Messages */
         .inline-status-container { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 6px; min-height: 16px; }
         .inline-error { color: var(--error-red); font-size: 0.75rem; font-weight: 500; opacity: 0; transition: opacity 0.2s; }
         .inline-error.active { opacity: 1; }
-        
         .inline-success { color: var(--success-green); font-size: 0.75rem; font-weight: 500; opacity: 0; transition: opacity 0.2s; text-align: right; }
         .inline-success.active { opacity: 1; }
 
         .form-success-msg { color: var(--success-green); font-size: 0.85rem; font-weight: 500; text-align: center; margin-top: 12px; display: none; }
         .form-success-msg.active { display: block; animation: fadeIn 0.2s ease; }
 
-        /* Kinetic Buttons */
-        .auth-btn { 
-            background: var(--text-main); color: var(--bg-base); border: none; height: 44px; border-radius: 6px; 
-            font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s var(--smooth); width: 100%; margin-top: 12px; outline: none; -webkit-tap-highlight-color: transparent; position: relative;
-        }
+        .auth-btn { background: var(--text-main); color: var(--bg-base); border: none; height: 44px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s var(--smooth); width: 100%; margin-top: 12px; outline: none; -webkit-tap-highlight-color: transparent; position: relative; }
         .auth-btn:hover { background: #ffffff; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(255,255,255,0.1); }
         .auth-btn:active { transform: translateY(0) scale(0.98); box-shadow: 0 2px 4px rgba(255,255,255,0.1); }
         .auth-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
-        
         .auth-btn-secondary { background: transparent; color: var(--text-main); border: 1px solid var(--input-border); margin-top: 16px; }
         .auth-btn-secondary:hover { background: rgba(255,255,255,0.05); border-color: #555; transform: translateY(0); box-shadow: none; }
 
-        /* Enterprise SVG Spinner */
         .spinner-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
         .svg-spinner { width: 20px; height: 20px; animation: rotate 2s linear infinite; }
         .svg-spinner circle { stroke: var(--bg-base); stroke-width: 3; stroke-dasharray: 1, 200; stroke-dashoffset: 0; animation: dash 1.5s ease-in-out infinite; stroke-linecap: round; fill: none; }
@@ -167,7 +106,6 @@
         @keyframes rotate { 100% { transform: rotate(360deg); } }
         @keyframes dash { 0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 200; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 200; stroke-dashoffset: -124px; } }
 
-        /* Links & Utility */
         .text-link { color: var(--text-muted); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: color 0.2s; }
         .text-link:hover { color: var(--text-main); }
         .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -202,10 +140,10 @@
         <div id="view-signin-1" class="view active">
             <form id="form-si-1" novalidate onsubmit="handleSignInStep1(event)">
                 <div class="input-group">
-                    <label class="input-label">Username</label>
-                    <input type="text" id="si-username" class="form-input" placeholder="Enter username" autocomplete="off" autocorrect="off" autocapitalize="none">
+                    <label class="input-label">Username / Email</label>
+                    <input type="text" id="si-username" class="form-input" placeholder="Enter username or email" autocomplete="off" autocorrect="off" autocapitalize="none">
                     <div class="inline-status-container">
-                        <div id="err-si-1" class="inline-error">Enter your username</div>
+                        <div id="err-si-1" class="inline-error">Enter your username or email</div>
                     </div>
                 </div>
                 <button type="submit" id="btn-si-1" class="auth-btn">
@@ -276,8 +214,8 @@
                 </div>
 
                 <div class="input-group">
-                    <label class="input-label">Email Address <span class="optional-tag">Optional</span></label>
-                    <input type="email" id="su-email" class="form-input" placeholder="Used for password recovery">
+                    <label class="input-label">Email Address</label>
+                    <input type="email" id="su-email" class="form-input" placeholder="Used for authentication and recovery">
                     <div class="inline-status-container">
                         <div id="err-su-email" class="inline-error">Please enter a valid email</div>
                     </div>
@@ -313,12 +251,12 @@
     </div>
 
     <script type="module">
-        // 1. Import the specific Firebase cryptographic and database tools
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        // Added sendPasswordResetEmail to the import list
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // 2. YOUR VAULT KEYS (Paste your exact config here)
+        // !!! PASTE YOUR KEYS HERE !!!
         const firebaseConfig = {
             apiKey: "AIzaSyD3O5NXqEL3rvSQpz8BK6rBtyoB2q0e9Nc",
             authDomain: "datum-os-net.firebaseapp.com",
@@ -328,28 +266,30 @@
             appId: "1:177069228699:web:ba9e1f3ce27870a00cbc3e"
         };
 
-        // 3. Initialize the connection
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 4. Expose these tools to our front-end logic globally
+        // Expose tools to global scope for our buttons
         window.datumAuth = auth;
         window.datumDb = db;
-        
-        // Attach Firebase functions to the window so our existing buttons can use them
         window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.sendPasswordResetEmail = sendPasswordResetEmail; // Expose the new reset function
         window.doc = doc;
         window.setDoc = setDoc;
         window.getDoc = getDoc;
     </script>
 
     <script>
-        let tempUsername = "";
+        // --- GLOBAL STATE & KILL SWITCH TRACKER ---
+        window.currentView = 'view-signin-1';
+        let tempEmail = ""; 
+        let tempDisplayName = "";
 
         // Core View Router
         window.switchView = function(viewId) {
+            window.currentView = viewId; // Updates tracker instantly
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             
@@ -376,14 +316,8 @@
             const input = document.getElementById(inputId);
             const eyeOpen = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
             const eyeClosed = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
-            
-            if (input.type === "password") {
-                input.type = "text";
-                iconElement.innerHTML = eyeClosed;
-            } else {
-                input.type = "password";
-                iconElement.innerHTML = eyeOpen;
-            }
+            if (input.type === "password") { input.type = "text"; iconElement.innerHTML = eyeClosed; } 
+            else { input.type = "password"; iconElement.innerHTML = eyeOpen; }
         };
 
         // Custom Validation Tools
@@ -409,25 +343,16 @@
             if (icon) icon.innerHTML = '';
         }
 
-        // GENERIC ERROR CLEARING LOGIC
         document.querySelectorAll('.form-input').forEach(input => {
             input.addEventListener('input', function() {
-                // 1. Remove the visual red border from the input itself
                 this.classList.remove('input-error');
-
-                // 2. Find the error message element that lives inside the same group
-                // The .closest('.input-group') finds the parent wrapper that contains both the input and the error
                 const container = this.closest('.input-group');
                 const errorElement = container.querySelector('.inline-error');
-
-                // 3. Hide it if it exists
-                if (errorElement) {
-                    errorElement.classList.remove('active');
-                }
+                if (errorElement) errorElement.classList.remove('active');
             });
         });
 
-        // Email Regex
+        // Email Regex Check
         const emailInput = document.getElementById('su-email');
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
         emailInput.addEventListener('input', function() {
@@ -439,7 +364,7 @@
             }
         });
 
-        // --- 1. LIVE FIREBASE USERNAME CHECKER ---
+        // --- 1. LIVE FIREBASE USERNAME CHECKER (REAL-TIME OPTIMIZED) ---
         let usernameTimeout;
         const suUsernameInput = document.getElementById('su-username');
         const suUserIcon = document.getElementById('su-user-icon');
@@ -451,7 +376,7 @@
 
         suUsernameInput.addEventListener('input', async function() {
             clearTimeout(usernameTimeout);
-            const val = this.value.trim().toLowerCase(); // Normalize to lowercase for database
+            const val = this.value.trim().toLowerCase(); // Normalize for DB lookup
             
             suUserIcon.innerHTML = ''; 
             errSuUser.classList.remove('active');
@@ -459,7 +384,6 @@
             this.classList.remove('input-error');
 
             if (val.length === 0) return;
-
             if (val.length < 4) {
                 showError('su-username', 'err-su-user', 'Username requires 4 characters');
                 suUserIcon.innerHTML = errorIconSVG;
@@ -469,10 +393,13 @@
             suUserIcon.innerHTML = `<svg class="svg-spinner" viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"></circle></svg>`;
 
             usernameTimeout = setTimeout(async () => {
+                if (window.currentView !== 'view-signup') return; // Kill switch 1
+
                 try {
-                    // Ping Firestore to see if this exact username exists
                     const docRef = window.doc(window.datumDb, "usernames", val);
                     const docSnap = await window.getDoc(docRef);
+
+                    if (window.currentView !== 'view-signup') return; // Kill switch 2
 
                     if (docSnap.exists() || val === "admin") {
                         showError('su-username', 'err-su-user', 'This username is already taken');
@@ -484,32 +411,50 @@
                 } catch (error) {
                     console.error("Database Ping Failed:", error);
                 }
-            }, 600);
+            }, 500); // 500ms debounce
         });
 
-        // --- 2. SECURE SIGN-IN ENGINE ---
+        // --- 2. DUAL-LOGIN ROUTING ENGINE ---
         window.handleSignInStep1 = async function(event) {
             event.preventDefault();
             const input = document.getElementById('si-username');
-            const val = input.value.trim();
+            const val = input.value.trim().toLowerCase();
 
             if (val.length < 4) return showError('si-username', 'err-si-1', 'Min 4 characters');
 
             setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', true);
             
             try {
-                // Verify the username actually exists in the database before asking for password
-                const docRef = window.doc(window.datumDb, "usernames", val.toLowerCase());
+                // Route A: Email Login
+                if (val.includes('@')) {
+                    tempEmail = val;
+                    tempDisplayName = val.split('@')[0]; // Temporary display name until DB loads
+                    
+                    if (window.currentView !== 'view-signin-1') return; // Kill switch
+                    
+                    setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', false);
+                    document.getElementById('display-username').textContent = tempDisplayName;
+                    switchView('view-signin-2');
+                    return;
+                }
+
+                // Route B: Username Login (Translation required)
+                const docRef = window.doc(window.datumDb, "usernames", val);
                 const docSnap = await window.getDoc(docRef);
                 
+                if (window.currentView !== 'view-signin-1') return; // Kill switch
+
                 setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', false);
 
                 if (!docSnap.exists()) {
-                    return showError('si-username', 'err-si-1', 'Account not found in system');
+                    return showError('si-username', 'err-si-1', 'Identity not found in the registry.');
                 }
 
-                tempUsername = val;
-                document.getElementById('display-username').textContent = tempUsername;
+                // Read the real email out of the database mapping
+                tempEmail = docSnap.data().email; 
+                tempDisplayName = val;
+                
+                document.getElementById('display-username').textContent = tempDisplayName;
                 switchView('view-signin-2');
 
             } catch (error) {
@@ -528,35 +473,42 @@
             setBtnLoading('btn-si-2', 'spin-si-2', 'text-si-2', true);
 
             try {
-                // Rebuild the Ghost Email
-                const ghostEmail = tempUsername.toLowerCase() + "@datumos.local";
+                // Authenticate with Firebase using the resolved tempEmail
+                await window.signInWithEmailAndPassword(window.datumAuth, tempEmail, passVal);
 
-                // Request Token from Firebase
-                await window.signInWithEmailAndPassword(window.datumAuth, ghostEmail, passVal);
+                if (window.currentView !== 'view-signin-2') return; // Kill switch
 
                 const msg = document.getElementById('succ-form-si');
-                msg.textContent = 'Login Successful! Redirecting...';
+                msg.textContent = 'Authentication verified. Establishing secure connection...';
                 msg.classList.add('active');
 
-                // Route to the dashboard
                 setTimeout(() => {
                     window.location.href = 'dashboard.html';
                 }, 800);
 
             } catch (error) {
                 setBtnLoading('btn-si-2', 'spin-si-2', 'text-si-2', false);
-                showError('si-pass', 'err-si-2', 'Incorrect password');
+                showError('si-pass', 'err-si-2', 'Authorization failed. Invalid credentials.');
             }
         };
 
-        window.handleForgotPassword = function() {
+        // --- 3. NATIVE FORGOT PASSWORD (GOOGLE SECURE) ---
+        window.handleForgotPassword = async function() {
             clearAllErrors();
             const msg = document.getElementById('succ-form-si');
-            msg.textContent = 'Contact administrator to reset credentials.';
+            
+            try {
+                await window.sendPasswordResetEmail(window.datumAuth, tempEmail);
+                msg.textContent = `Recovery link securely routed to ${tempEmail}`;
+                msg.style.color = "var(--success-green)";
+            } catch (error) {
+                msg.textContent = 'Error dispatching recovery sequence. Try again.';
+                msg.style.color = "var(--error-red)";
+            }
             msg.classList.add('active');
         };
 
-        // --- 3. SECURE SIGN-UP ENGINE ---
+        // --- 4. SECURE SIGN-UP ENGINE (REAL EMAIL REQUIRED) ---
         window.handleSignUp = async function(event) {
             event.preventDefault();
             let isValid = true;
@@ -567,10 +519,15 @@
             const emailVal = document.getElementById('su-email').value.trim();
             const passVal = document.getElementById('su-pass').value;
 
-            if (usernameVal.length < 4) { document.getElementById('su-username').classList.add('input-error'); document.getElementById('err-su-user').classList.add('active'); isValid = false; }
-            if (!fnameVal) { document.getElementById('su-fname').classList.add('input-error'); document.getElementById('err-su-fname').classList.add('active'); isValid = false; }
-            if (!lnameVal) { document.getElementById('su-lname').classList.add('input-error'); document.getElementById('err-su-lname').classList.add('active'); isValid = false; }
-            if (passVal.length < 6) { document.getElementById('su-pass').classList.add('input-error'); document.getElementById('err-su-pass').classList.add('active'); isValid = false; }
+            if (usernameVal.length < 4) { showError('su-username', 'err-su-user', 'Required'); isValid = false; }
+            if (!fnameVal) { showError('su-fname', 'err-su-fname', 'Required'); isValid = false; }
+            if (!lnameVal) { showError('su-lname', 'err-su-lname', 'Required'); isValid = false; }
+            if (passVal.length < 6) { showError('su-pass', 'err-su-pass', 'Min 6 characters'); isValid = false; }
+            
+            if (!emailVal || !emailRegex.test(emailVal)) {
+                showError('su-email', 'err-su-email', 'Valid email required for secure registry'); 
+                isValid = false; 
+            }
             
             if (document.querySelectorAll('.input-error').length > 0) isValid = false;
             if (!isValid) return;
@@ -578,41 +535,43 @@
             setBtnLoading('btn-su', 'spin-su', 'text-su', true);
 
             try {
-                // 1. The Ghost Email Translation
-                const ghostEmail = usernameVal.toLowerCase() + "@datumos.local";
-
-                // 2. Cryptographic Handshake
-                const userCredential = await window.createUserWithEmailAndPassword(window.datumAuth, ghostEmail, passVal);
+                // 1. Firebase Native Authentication Handshake
+                const userCredential = await window.createUserWithEmailAndPassword(window.datumAuth, emailVal, passVal);
                 const user = userCredential.user;
 
-                // 3. Batch Write to the Public Registry (Locks the username globally)
+                if (window.currentView !== 'view-signup') return; // Kill switch
+
+                // 2. Map Username -> Real Email in the public registry
                 await window.setDoc(window.doc(window.datumDb, "usernames", usernameVal.toLowerCase()), {
+                    email: emailVal.toLowerCase(),
                     uid: user.uid,
                     claimedAt: new Date().toISOString()
                 });
 
-                // 4. Batch Write to the Private Vault (Stores user info)
+                // 3. Write User Profile into Private Vault
                 await window.setDoc(window.doc(window.datumDb, "users", user.uid), {
                     username: usernameVal,
                     firstName: fnameVal,
                     lastName: lnameVal,
-                    recoveryEmail: emailVal || "None provided",
+                    email: emailVal,
                     createdAt: new Date().toISOString()
                 });
 
                 const msg = document.getElementById('succ-form-su');
-                msg.textContent = 'Account created successfully! Initializing...';
+                msg.textContent = 'Account successfully created. Initializing secure kernel...';
                 msg.classList.add('active');
 
-                // 5. Route to the dashboard
                 setTimeout(() => {
                     window.location.href = 'dashboard.html';
                 }, 1000);
 
             } catch (error) {
                 setBtnLoading('btn-su', 'spin-su', 'text-su', false);
-                showError('su-username', 'err-su-user', 'Registration failed. Try another username.');
-                console.error("Auth Error:", error.message);
+                if (error.code === 'auth/email-already-in-use') {
+                    showError('su-email', 'err-su-email', 'This email address is already associated with another account.');
+                } else {
+                    showError('su-username', 'err-su-user', 'Registration sequence failed. Try again.');
+                }
             }
         };
 
@@ -636,14 +595,12 @@
             let index = 0;
             let percent = 0;
 
-            // Live Percentage Counter
             const pctInterval = setInterval(() => {
-                percent += Math.floor(Math.random() * 6) + 2; // Random jumps for realistic data loading
+                percent += Math.floor(Math.random() * 6) + 2;
                 if(percent >= 99) percent = 99;
                 pctEl.textContent = percent + '%';
             }, 55);
 
-            // Text Phasing
             const bootInterval = setInterval(() => {
                 if(index < sequence.length) {
                     bootText.style.opacity = '0';
@@ -655,7 +612,6 @@
                 }
             }, 450);
 
-            // Synchronization & Exit
             setTimeout(() => {
                 clearInterval(pctInterval);
                 clearInterval(bootInterval);
@@ -668,7 +624,6 @@
             }, 1800);
         });
 
-        // PWA Zoom Lock
         if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
             document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
             document.body.style.touchAction = 'manipulation';
