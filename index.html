@@ -439,7 +439,7 @@
             }
         });
 
-        // LIVE USERNAME CHECKER (4 Characters + Premium Shield Icon)
+        // --- 1. LIVE FIREBASE USERNAME CHECKER ---
         let usernameTimeout;
         const suUsernameInput = document.getElementById('su-username');
         const suUserIcon = document.getElementById('su-user-icon');
@@ -449,9 +449,9 @@
         const successIconSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
         const errorIconSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--error-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
 
-        suUsernameInput.addEventListener('input', function() {
+        suUsernameInput.addEventListener('input', async function() {
             clearTimeout(usernameTimeout);
-            const val = this.value.trim();
+            const val = this.value.trim().toLowerCase(); // Normalize to lowercase for database
             
             suUserIcon.innerHTML = ''; 
             errSuUser.classList.remove('active');
@@ -468,72 +468,152 @@
 
             suUserIcon.innerHTML = `<svg class="svg-spinner" viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"></circle></svg>`;
 
-            usernameTimeout = setTimeout(() => {
-                if (val.toLowerCase() === "admin" || val.toLowerCase() === "taken") {
-                    showError('su-username', 'err-su-user', 'This username is already taken');
-                    suUserIcon.innerHTML = errorIconSVG;
-                } else {
-                    succSuUser.classList.add('active');
-                    suUserIcon.innerHTML = successIconSVG;
+            usernameTimeout = setTimeout(async () => {
+                try {
+                    // Ping Firestore to see if this exact username exists
+                    const docRef = window.doc(window.datumDb, "usernames", val);
+                    const docSnap = await window.getDoc(docRef);
+
+                    if (docSnap.exists() || val === "admin") {
+                        showError('su-username', 'err-su-user', 'This username is already taken');
+                        suUserIcon.innerHTML = errorIconSVG;
+                    } else {
+                        succSuUser.classList.add('active');
+                        suUserIcon.innerHTML = successIconSVG;
+                    }
+                } catch (error) {
+                    console.error("Database Ping Failed:", error);
                 }
             }, 600);
         });
 
-        // Mock Sign Ins
-        window.handleSignInStep1 = function(event) {
+        // --- 2. SECURE SIGN-IN ENGINE ---
+        window.handleSignInStep1 = async function(event) {
             event.preventDefault();
             const input = document.getElementById('si-username');
-            if (input.value.trim().length < 4) return showError('si-username', 'err-si-1', 'Username requires at least 4 characters');
+            const val = input.value.trim();
+
+            if (val.length < 4) return showError('si-username', 'err-si-1', 'Min 4 characters');
 
             setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', true);
-            setTimeout(() => {
+            
+            try {
+                // Verify the username actually exists in the database before asking for password
+                const docRef = window.doc(window.datumDb, "usernames", val.toLowerCase());
+                const docSnap = await window.getDoc(docRef);
+                
                 setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', false);
-                tempUsername = input.value.trim();
+
+                if (!docSnap.exists()) {
+                    return showError('si-username', 'err-si-1', 'Account not found in system');
+                }
+
+                tempUsername = val;
                 document.getElementById('display-username').textContent = tempUsername;
                 switchView('view-signin-2');
-            }, 800);
+
+            } catch (error) {
+                setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', false);
+                showError('si-username', 'err-si-1', 'Network error');
+            }
         };
 
-        window.handleSignInStep2 = function(event) {
+        window.handleSignInStep2 = async function(event) {
             event.preventDefault();
             const input = document.getElementById('si-pass');
-            if (input.value.trim().length < 6) return showError('si-pass', 'err-si-2', 'Password must be at least 6 characters');
+            const passVal = input.value;
+
+            if (passVal.length < 6) return showError('si-pass', 'err-si-2', 'Min 6 characters');
 
             setBtnLoading('btn-si-2', 'spin-si-2', 'text-si-2', true);
-            setTimeout(() => {
-                setBtnLoading('btn-si-2', 'spin-si-2', 'text-si-2', false);
+
+            try {
+                // Rebuild the Ghost Email
+                const ghostEmail = tempUsername.toLowerCase() + "@datumos.local";
+
+                // Request Token from Firebase
+                await window.signInWithEmailAndPassword(window.datumAuth, ghostEmail, passVal);
+
                 const msg = document.getElementById('succ-form-si');
                 msg.textContent = 'Login Successful! Redirecting...';
                 msg.classList.add('active');
-            }, 1200);
+
+                // Route to the dashboard
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 800);
+
+            } catch (error) {
+                setBtnLoading('btn-si-2', 'spin-si-2', 'text-si-2', false);
+                showError('si-pass', 'err-si-2', 'Incorrect password');
+            }
         };
 
         window.handleForgotPassword = function() {
             clearAllErrors();
             const msg = document.getElementById('succ-form-si');
-            msg.textContent = 'A secure reset link has been sent to your email.';
+            msg.textContent = 'Contact administrator to reset credentials.';
             msg.classList.add('active');
         };
 
-        window.handleSignUp = function(event) {
+        // --- 3. SECURE SIGN-UP ENGINE ---
+        window.handleSignUp = async function(event) {
             event.preventDefault();
             let isValid = true;
             
-            if (document.getElementById('su-username').value.trim().length < 4) { showError('su-username', 'err-su-user', 'Required'); isValid = false; }
-            if (!document.getElementById('su-fname').value.trim()) { showError('su-fname', 'err-su-fname', 'Required'); isValid = false; }
-            if (!document.getElementById('su-lname').value.trim()) { showError('su-lname', 'err-su-lname', 'Required'); isValid = false; }
-            if (document.getElementById('su-pass').value.length < 6) { showError('su-pass', 'err-su-pass', 'At least 6 characters required'); isValid = false; }
+            const usernameVal = document.getElementById('su-username').value.trim();
+            const fnameVal = document.getElementById('su-fname').value.trim();
+            const lnameVal = document.getElementById('su-lname').value.trim();
+            const emailVal = document.getElementById('su-email').value.trim();
+            const passVal = document.getElementById('su-pass').value;
+
+            if (usernameVal.length < 4) { document.getElementById('su-username').classList.add('input-error'); document.getElementById('err-su-user').classList.add('active'); isValid = false; }
+            if (!fnameVal) { document.getElementById('su-fname').classList.add('input-error'); document.getElementById('err-su-fname').classList.add('active'); isValid = false; }
+            if (!lnameVal) { document.getElementById('su-lname').classList.add('input-error'); document.getElementById('err-su-lname').classList.add('active'); isValid = false; }
+            if (passVal.length < 6) { document.getElementById('su-pass').classList.add('input-error'); document.getElementById('err-su-pass').classList.add('active'); isValid = false; }
             
             if (document.querySelectorAll('.input-error').length > 0) isValid = false;
             if (!isValid) return;
 
             setBtnLoading('btn-su', 'spin-su', 'text-su', true);
-            setTimeout(() => {
-                setBtnLoading('btn-su', 'spin-su', 'text-su', false);
+
+            try {
+                // 1. The Ghost Email Translation
+                const ghostEmail = usernameVal.toLowerCase() + "@datumos.local";
+
+                // 2. Cryptographic Handshake
+                const userCredential = await window.createUserWithEmailAndPassword(window.datumAuth, ghostEmail, passVal);
+                const user = userCredential.user;
+
+                // 3. Batch Write to the Public Registry (Locks the username globally)
+                await window.setDoc(window.doc(window.datumDb, "usernames", usernameVal.toLowerCase()), {
+                    uid: user.uid,
+                    claimedAt: new Date().toISOString()
+                });
+
+                // 4. Batch Write to the Private Vault (Stores user info)
+                await window.setDoc(window.doc(window.datumDb, "users", user.uid), {
+                    username: usernameVal,
+                    firstName: fnameVal,
+                    lastName: lnameVal,
+                    recoveryEmail: emailVal || "None provided",
+                    createdAt: new Date().toISOString()
+                });
+
                 const msg = document.getElementById('succ-form-su');
                 msg.textContent = 'Account created successfully! Initializing...';
                 msg.classList.add('active');
-            }, 1500);
+
+                // 5. Route to the dashboard
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+
+            } catch (error) {
+                setBtnLoading('btn-su', 'spin-su', 'text-su', false);
+                showError('su-username', 'err-su-user', 'Registration failed. Try another username.');
+                console.error("Auth Error:", error.message);
+            }
         };
 
         function setBtnLoading(btnId, spinId, textId, isLoading) {
