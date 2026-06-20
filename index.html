@@ -36,6 +36,7 @@
         .hidden { display: none !important; }
 
         /* Main Content */
+        /* REVERTED: Removed touch-action so browsers work normally */
         body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; }
         .container { text-align: center; max-width: 420px; padding: 20px; }
         h1 { font-weight: 600; font-size: 3rem; letter-spacing: -0.05em; margin: 0; }
@@ -125,7 +126,6 @@
             appId: "APP ID"
         };
 
-        // Notice we now use 'let' so we can Hot-Swap the engine later
         let app = initializeApp(firebaseConfig);
         let auth = getAuth(app);
         
@@ -173,14 +173,12 @@
 
             // STATE MACHINE LOGIC
             if (isConnecting) {
-                // Ignore the click if it's within the first 3 seconds
                 if (Date.now() - attemptStartTime < 3000) return; 
                 
-                // If clicked after 3 seconds, abort cleanly
                 if (authTimeoutId) clearTimeout(authTimeoutId);
                 resetButtonState();
                 showError("Connection aborted. Please try again.");
-                rebootEngine(); // Purge the locked Firebase state
+                rebootEngine();
                 return;
             }
 
@@ -204,25 +202,25 @@
                 if (isConnecting) {
                     resetButtonState();
                     showError("Connection timed out. Google's secure server didn't respond.");
-                    rebootEngine(); // Purge the locked Firebase state
+                    rebootEngine(); 
                 }
             }, 8000); 
 
-            // FIRE THE MODULAR ENGINE (Inside Failsafe)
+            // FIRE THE MODULAR ENGINE
             try {
                 const provider = new GoogleAuthProvider();
-                provider.setCustomParameters({ prompt: 'select_account' }); // Bypasses rigid browser caching
+                provider.setCustomParameters({ prompt: 'select_account' }); 
                 signInWithRedirect(auth, provider).catch((error) => {
                     if (authTimeoutId) clearTimeout(authTimeoutId);
                     resetButtonState();
                     showError("Unable to reach Google servers. Please try again.");
-                    rebootEngine(); // Purge the locked Firebase state
+                    rebootEngine(); 
                 });
             } catch (fatalError) {
                 if (authTimeoutId) clearTimeout(authTimeoutId);
                 resetButtonState();
                 showError("Unable to reach Google servers. Please try again.");
-                rebootEngine(); // Purge the locked Firebase state
+                rebootEngine(); 
             }
         };
 
@@ -247,14 +245,11 @@
         }
 
         // --- The Hot-Swap Function ---
-        // Generates a brand new, clean instance of Firebase Auth seamlessly
         function rebootEngine() {
             try {
                 app = initializeApp(firebaseConfig, 'Recovery_' + Date.now());
                 auth = getAuth(app);
-            } catch(e) {
-                // Silently handle any background cleanup errors
-            }
+            } catch(e) {}
         }
 
         // Handle Back-Forward Cache restores
@@ -267,6 +262,13 @@
     </script>
 
     <script>
+        // NEW: PWA-Only Zoom Lock
+        // Dynamically locks the UI only if the user has installed it as an app
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+            document.body.style.touchAction = 'manipulation';
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 document.getElementById('splash-screen').style.opacity = '0';
