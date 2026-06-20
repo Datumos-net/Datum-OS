@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,36 +13,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Disable text selection across the entire app for a native look */
-        body {
-            -webkit-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Ensure form inputs remain selectable */
-        input, textarea {
-            -webkit-user-select: text;
-            user-select: text;
-        }
-
-        /* Ultra-Minimalist Enterprise Theme */
+        body { -webkit-user-select: none; -ms-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+        input, textarea { -webkit-user-select: text; user-select: text; }
         :root { 
             --bg-base: #000000; --bg-surface: #0a0a0a; --text-main: #ededed; --text-muted: #888888; 
             --input-bg: transparent; --input-border: #333333; --input-focus: #ededed;
             --error-red: #ef4444; --error-ring: rgba(239, 68, 68, 0.2); --success-green: #10b981; 
             --smooth: cubic-bezier(0.16, 1, 0.3, 1);
         }
-        
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        
-        body { 
-            background-color: var(--bg-base); color: var(--text-main); 
-            height: 100vh; display: flex; justify-content: center; align-items: center; 
-            touch-action: manipulation; position: relative; overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
+        body { background-color: var(--bg-base); color: var(--text-main); height: 100vh; display: flex; justify-content: center; align-items: center; touch-action: manipulation; position: relative; overflow: hidden; -webkit-font-smoothing: antialiased; }
 
         .bg-grid { position: absolute; inset: 0; z-index: -2; background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 10%, transparent 80%); -webkit-mask-image: radial-gradient(circle at center, black 10%, transparent 80%); }
         .bg-spotlight { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; z-index: -1; background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%); pointer-events: none; }
@@ -252,11 +232,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        // Added sendPasswordResetEmail to the import list
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // !!! PASTE YOUR KEYS HERE !!!
         const firebaseConfig = {
             apiKey: "AIzaSyD3O5NXqEL3rvSQpz8BK6rBtyoB2q0e9Nc",
             authDomain: "datum-os-net.firebaseapp.com",
@@ -270,12 +248,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Expose tools to global scope for our buttons
         window.datumAuth = auth;
         window.datumDb = db;
         window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.sendPasswordResetEmail = sendPasswordResetEmail; // Expose the new reset function
+        window.sendPasswordResetEmail = sendPasswordResetEmail;
         window.doc = doc;
         window.setDoc = setDoc;
         window.getDoc = getDoc;
@@ -288,8 +265,10 @@
         let tempDisplayName = "";
 
         // Core View Router
-        window.switchView = function(viewId) {
-            window.currentView = viewId; // Updates tracker instantly
+        window.switchView = function(viewId, addToHistory = true) {
+            window.currentView = viewId; 
+            if (addToHistory) window.history.pushState({ view: viewId }, "");
+            
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             
@@ -310,6 +289,15 @@
                 sub.style.opacity = '1';
             }, 150);
         };
+
+        // Handle Back Button
+        window.addEventListener('popstate', (event) => {
+            const view = event.state ? event.state.view : 'view-signin-1';
+            window.switchView(view, false);
+        });
+
+        // Initialize first state
+        window.history.replaceState({ view: 'view-signin-1' }, "");
 
         // Password Toggle Engine
         window.togglePassword = function(inputId, iconElement) {
@@ -364,7 +352,7 @@
             }
         });
 
-        // --- 1. LIVE FIREBASE USERNAME CHECKER (REAL-TIME OPTIMIZED) ---
+        // --- 1. LIVE FIREBASE USERNAME CHECKER ---
         let usernameTimeout;
         const suUsernameInput = document.getElementById('su-username');
         const suUserIcon = document.getElementById('su-user-icon');
@@ -376,7 +364,7 @@
 
         suUsernameInput.addEventListener('input', async function() {
             clearTimeout(usernameTimeout);
-            const val = this.value.trim().toLowerCase(); // Normalize for DB lookup
+            const val = this.value.trim().toLowerCase(); 
             
             suUserIcon.innerHTML = ''; 
             errSuUser.classList.remove('active');
@@ -393,13 +381,13 @@
             suUserIcon.innerHTML = `<svg class="svg-spinner" viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"></circle></svg>`;
 
             usernameTimeout = setTimeout(async () => {
-                if (window.currentView !== 'view-signup') return; // Kill switch 1
+                if (window.currentView !== 'view-signup') return;
 
                 try {
                     const docRef = window.doc(window.datumDb, "usernames", val);
                     const docSnap = await window.getDoc(docRef);
 
-                    if (window.currentView !== 'view-signup') return; // Kill switch 2
+                    if (window.currentView !== 'view-signup') return;
 
                     if (docSnap.exists() || val === "admin") {
                         showError('su-username', 'err-su-user', 'This username is already taken');
@@ -411,7 +399,7 @@
                 } catch (error) {
                     console.error("Database Ping Failed:", error);
                 }
-            }, 500); // 500ms debounce
+            }, 500); 
         });
 
         // --- 2. DUAL-LOGIN ROUTING ENGINE ---
@@ -425,38 +413,31 @@
             setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', true);
             
             try {
-                // Route A: Email Login
                 if (val.includes('@')) {
                     tempEmail = val;
-                    tempDisplayName = val.split('@')[0]; // Temporary display name until DB loads
-                    
-                    if (window.currentView !== 'view-signin-1') return; // Kill switch
-                    
+                    tempDisplayName = val.split('@')[0];
+                    if (window.currentView !== 'view-signin-1') return;
                     setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', false);
                     document.getElementById('display-username').textContent = tempDisplayName;
                     switchView('view-signin-2');
                     return;
                 }
 
-                // Route B: Username Login (Translation required)
                 const docRef = window.doc(window.datumDb, "usernames", val);
                 const docSnap = await window.getDoc(docRef);
                 
-                if (window.currentView !== 'view-signin-1') return; // Kill switch
-
+                if (window.currentView !== 'view-signin-1') return;
                 setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', false);
 
                 if (!docSnap.exists()) {
-                    return showError('si-username', 'err-si-1', 'Identity not found in the registry.');
+                    return showError('si-username', 'err-si-1', 'Account not registered. Please create one first.');
                 }
 
-                // Read the real email out of the database mapping
                 tempEmail = docSnap.data().email; 
                 tempDisplayName = val;
                 
                 document.getElementById('display-username').textContent = tempDisplayName;
                 switchView('view-signin-2');
-
             } catch (error) {
                 setBtnLoading('btn-si-1', 'spin-si-1', 'text-si-1', false);
                 showError('si-username', 'err-si-1', 'Network error');
@@ -473,10 +454,8 @@
             setBtnLoading('btn-si-2', 'spin-si-2', 'text-si-2', true);
 
             try {
-                // Authenticate with Firebase using the resolved tempEmail
                 await window.signInWithEmailAndPassword(window.datumAuth, tempEmail, passVal);
-
-                if (window.currentView !== 'view-signin-2') return; // Kill switch
+                if (window.currentView !== 'view-signin-2') return;
 
                 const msg = document.getElementById('succ-form-si');
                 msg.textContent = 'Authentication verified. Establishing secure connection...';
@@ -492,11 +471,9 @@
             }
         };
 
-        // --- 3. NATIVE FORGOT PASSWORD (GOOGLE SECURE) ---
         window.handleForgotPassword = async function() {
             clearAllErrors();
             const msg = document.getElementById('succ-form-si');
-            
             try {
                 await window.sendPasswordResetEmail(window.datumAuth, tempEmail);
                 msg.textContent = `Recovery link securely routed to ${tempEmail}`;
@@ -508,7 +485,7 @@
             msg.classList.add('active');
         };
 
-        // --- 4. SECURE SIGN-UP ENGINE (REAL EMAIL REQUIRED) ---
+        // --- 3. SECURE SIGN-UP ENGINE ---
         window.handleSignUp = async function(event) {
             event.preventDefault();
             let isValid = true;
@@ -535,20 +512,17 @@
             setBtnLoading('btn-su', 'spin-su', 'text-su', true);
 
             try {
-                // 1. Firebase Native Authentication Handshake
                 const userCredential = await window.createUserWithEmailAndPassword(window.datumAuth, emailVal, passVal);
                 const user = userCredential.user;
 
-                if (window.currentView !== 'view-signup') return; // Kill switch
+                if (window.currentView !== 'view-signup') return;
 
-                // 2. Map Username -> Real Email in the public registry
                 await window.setDoc(window.doc(window.datumDb, "usernames", usernameVal.toLowerCase()), {
                     email: emailVal.toLowerCase(),
                     uid: user.uid,
                     claimedAt: new Date().toISOString()
                 });
 
-                // 3. Write User Profile into Private Vault
                 await window.setDoc(window.doc(window.datumDb, "users", user.uid), {
                     username: usernameVal,
                     firstName: fnameVal,
@@ -558,7 +532,7 @@
                 });
 
                 const msg = document.getElementById('succ-form-su');
-                msg.textContent = 'Account successfully created. Initializing secure kernel...';
+                msg.textContent = 'Account created. Initializing...';
                 msg.classList.add('active');
 
                 setTimeout(() => {
@@ -586,7 +560,6 @@
             }
         }
     </script>
-
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const bootText = document.getElementById('boot-text');
@@ -594,36 +567,27 @@
             const sequence = ['VERIFYING CRYPTOGRAPHY...', 'SECURING CONNECTION...', 'READY.'];
             let index = 0;
             let percent = 0;
-
             const pctInterval = setInterval(() => {
                 percent += Math.floor(Math.random() * 6) + 2;
                 if(percent >= 99) percent = 99;
                 pctEl.textContent = percent + '%';
             }, 55);
-
             const bootInterval = setInterval(() => {
                 if(index < sequence.length) {
                     bootText.style.opacity = '0';
-                    setTimeout(() => {
-                        bootText.textContent = sequence[index];
-                        bootText.style.opacity = '1';
-                        index++;
-                    }, 150);
+                    setTimeout(() => { bootText.textContent = sequence[index]; bootText.style.opacity = '1'; index++; }, 150);
                 }
             }, 450);
-
             setTimeout(() => {
                 clearInterval(pctInterval);
                 clearInterval(bootInterval);
                 pctEl.textContent = '100%';
-                
                 setTimeout(() => {
                     document.getElementById('splash-screen').style.opacity = '0';
                     setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 600);
                 }, 150);
             }, 1800);
         });
-
         if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
             document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
             document.body.style.touchAction = 'manipulation';
