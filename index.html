@@ -14,18 +14,19 @@
 
     <style>
         /* Disable text selection across the entire app for a native look */
-body {
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none;     /* IE 10 and IE 11 */
-    user-select: none;         /* Standard syntax */
-    -webkit-tap-highlight-color: transparent; /* Removes flash on mobile tap */
-}
+        body {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none;     /* IE 10 and IE 11 */
+            user-select: none;         /* Standard syntax */
+            -webkit-tap-highlight-color: transparent; /* Removes flash on mobile tap */
+        }
 
-/* Ensure form inputs remain selectable so users can edit their text */
-input, textarea {
-    -webkit-user-select: text;
-    user-select: text;
-}
+        /* Ensure form inputs remain selectable so users can edit their text */
+        input, textarea {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
         /* Ultra-Minimalist Enterprise Theme */
         :root { 
             --bg-base: #000000;
@@ -310,6 +311,39 @@ input, textarea {
         </div>
 
     </div>
+
+    <script type="module">
+        // 1. Import the specific Firebase cryptographic and database tools
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // 2. YOUR VAULT KEYS (Paste your exact config here)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3O5NXqEL3rvSQpz8BK6rBtyoB2q0e9Nc",
+            authDomain: "datum-os-net.firebaseapp.com",
+            projectId: "datum-os-net",
+            storageBucket: "datum-os-net.firebasestorage.app",
+            messagingSenderId: "177069228699",
+            appId: "1:177069228699:web:ba9e1f3ce27870a00cbc3e"
+        };
+
+        // 3. Initialize the connection
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 4. Expose these tools to our front-end logic globally
+        window.datumAuth = auth;
+        window.datumDb = db;
+        
+        // Attach Firebase functions to the window so our existing buttons can use them
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+    </script>
 
     <script>
         let tempUsername = "";
