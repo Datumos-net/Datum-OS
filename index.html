@@ -40,8 +40,28 @@
         .container { text-align: center; max-width: 420px; padding: 20px; }
         h1 { font-weight: 600; font-size: 3rem; letter-spacing: -0.05em; margin: 0; }
         p { color: #94a3b8; margin: 12px 0 40px; font-weight: 300; line-height: 1.6; }
-        .auth-btn { background: #ffffff; color: #030712; border: none; padding: 12px 24px; border-radius: 9999px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; transition: transform 0.2s, background 0.2s, opacity 0.3s; width: 100%; justify-content: center; }
-        .auth-btn:hover { background: #e2e8f0; transform: scale(1.02); }
+        
+        /* Native Button Styling */
+        .auth-btn { 
+            background: #ffffff; 
+            color: #030712; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 9999px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 12px; 
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, opacity 0.3s; 
+            width: 100%; 
+            justify-content: center; 
+            -webkit-tap-highlight-color: transparent; 
+            outline: none; 
+        }
+        .auth-btn:focus { outline: none; }
+        .auth-btn:hover { background: #e2e8f0; transform: translateY(-1px); }
+        .auth-btn:active { transform: scale(0.96); }
         
         /* Elegant Error Message Styling */
         .error-text {
@@ -97,17 +117,21 @@
         import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyD08R3ddEbYstQMt0IJyMcBgg7JR-ptk8M",
+            apiKey: "API KEY",
             authDomain: "datum-os.firebaseapp.com",
             projectId: "datum-os",
             storageBucket: "datum-os.firebasestorage.app",
-            messagingSenderId: "192360227468",
-            appId: "1:192360227468:web:cd8ee477d4e790063051a9"
+            messagingSenderId: "MESSAGE SENDER ID",
+            appId: "APP ID"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const googleBtn = document.getElementById('google-btn');
+        // Notice we now use 'let' so we can Hot-Swap the engine later
+        let app = initializeApp(firebaseConfig);
+        let auth = getAuth(app);
+        
+        let authTimeoutId = null; 
+        let attemptStartTime = 0; 
+        let isConnecting = false; 
 
         // 1. THE ULTIMATE SOURCE OF TRUTH
         onAuthStateChanged(auth, (user) => {
@@ -124,54 +148,87 @@
             resetButtonState(); 
             if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') return; 
             showError("Authentication failed or was cancelled. Please try again.");
+            rebootEngine();
         });
 
         // 3. DYNAMIC NETWORK LISTENERS
         window.addEventListener('offline', () => {
-            resetButtonState();
+            if (isConnecting) {
+                if (authTimeoutId) clearTimeout(authTimeoutId);
+                resetButtonState();
+                rebootEngine();
+            }
             showError("Connection lost. Operating in offline mode.");
-            googleBtn.style.opacity = "0.6"; 
-            googleBtn.style.pointerEvents = "none";
+            document.getElementById('google-btn').style.opacity = "0.6"; 
         });
 
         window.addEventListener('online', () => {
             document.getElementById('error-message').classList.add('hidden');
-            googleBtn.style.opacity = "1"; 
-            googleBtn.style.pointerEvents = "auto";
+            document.getElementById('google-btn').style.opacity = "1"; 
         });
 
-        // 4. BULLETPROOF SIGN IN FUNCTION (Exposed globally for the HTML button)
+        // 4. BULLETPROOF SIGN IN FUNCTION 
         window.signIn = function() {
+            const errorDiv = document.getElementById('error-message');
+
+            // STATE MACHINE LOGIC
+            if (isConnecting) {
+                // Ignore the click if it's within the first 3 seconds
+                if (Date.now() - attemptStartTime < 3000) return; 
+                
+                // If clicked after 3 seconds, abort cleanly
+                if (authTimeoutId) clearTimeout(authTimeoutId);
+                resetButtonState();
+                showError("Connection aborted. Please try again.");
+                rebootEngine(); // Purge the locked Firebase state
+                return;
+            }
+
+            // OFFLINE CHECK
             if (!navigator.onLine) {
                 showError("No network detected. Please connect to the internet.");
                 return; 
             }
 
-            // Lock UI into Loading State
-            document.getElementById('error-message').classList.add('hidden');
+            // INITIATE FRESH ATTEMPT
+            isConnecting = true;
+            attemptStartTime = Date.now();
+            errorDiv.classList.add('hidden');
             document.getElementById('btn-icon').classList.add('hidden');
             document.getElementById('btn-spinner').classList.remove('hidden');
             document.getElementById('btn-text').textContent = "Connecting...";
-            googleBtn.style.pointerEvents = "none"; 
 
-            // Fire the Modular engine
-            const provider = new GoogleAuthProvider();
-            signInWithRedirect(auth, provider).catch((error) => {
-                resetButtonState();
-                showError("Unable to reach Google servers. Please try again.");
-            });
-
-            // The Deadman's Switch (Still needed as a safety net for bad network latency)
-            setTimeout(() => {
-                if (googleBtn.style.pointerEvents === "none") {
+            // THE 8-SECOND DEADMAN'S SWITCH
+            if (authTimeoutId) clearTimeout(authTimeoutId);
+            authTimeoutId = setTimeout(() => {
+                if (isConnecting) {
                     resetButtonState();
                     showError("Connection timed out. Google's secure server didn't respond.");
+                    rebootEngine(); // Purge the locked Firebase state
                 }
-            }, 10000);
+            }, 8000); 
+
+            // FIRE THE MODULAR ENGINE (Inside Failsafe)
+            try {
+                const provider = new GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' }); // Bypasses rigid browser caching
+                signInWithRedirect(auth, provider).catch((error) => {
+                    if (authTimeoutId) clearTimeout(authTimeoutId);
+                    resetButtonState();
+                    showError("Unable to reach Google servers. Please try again.");
+                    rebootEngine(); // Purge the locked Firebase state
+                });
+            } catch (fatalError) {
+                if (authTimeoutId) clearTimeout(authTimeoutId);
+                resetButtonState();
+                showError("Unable to reach Google servers. Please try again.");
+                rebootEngine(); // Purge the locked Firebase state
+            }
         };
 
-        // --- Helper Functions ---
+        // --- Core Helper Functions ---
         function resetButtonState() {
+            isConnecting = false;
             const btnIcon = document.getElementById('btn-icon');
             const btnSpinner = document.getElementById('btn-spinner');
             const btnText = document.getElementById('btn-text');
@@ -180,7 +237,6 @@
                 btnSpinner.classList.add('hidden');
                 btnIcon.classList.remove('hidden');
                 btnText.textContent = "Sign in with Google";
-                googleBtn.style.pointerEvents = "auto"; 
             }
         }
 
@@ -190,10 +246,22 @@
             errorDiv.classList.remove('hidden');
         }
 
-        // Handle Back-Forward Cache
+        // --- The Hot-Swap Function ---
+        // Generates a brand new, clean instance of Firebase Auth seamlessly
+        function rebootEngine() {
+            try {
+                app = initializeApp(firebaseConfig, 'Recovery_' + Date.now());
+                auth = getAuth(app);
+            } catch(e) {
+                // Silently handle any background cleanup errors
+            }
+        }
+
+        // Handle Back-Forward Cache restores
         window.addEventListener('pageshow', (event) => {
             if (event.persisted) {
                 resetButtonState();
+                rebootEngine();
             }
         });
     </script>
